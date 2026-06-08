@@ -48,6 +48,7 @@ export interface ProfileCard {
 
 export interface ParallelPersonality {
   id: string;
+  archetype: string;
   codeName: string;
   accentColor: string;
   tagline: string;
@@ -70,3 +71,29 @@ export interface ParallelPersonality {
 }
 
 export type AppStage = 'home' | 'simulating' | 'result';
+
+export type EmotionType = 'calm' | 'passionate' | 'skeptical' | 'gentle' | 'analytical' | 'defiant';
+
+export type AvatarPose = 'idle' | 'speaking' | 'thinking' | 'listening' | 'reacting' | 'excited';
+
+export interface AvatarAnimation {
+  archetype: string;
+  primaryColor: string;
+  bodyBounce: string;
+  armSwing: string;
+  headTilt: string;
+  eyeBlink: string;
+  specialEffect?: string;
+}
+
+export interface DialogueTurnDisplay {
+  id: string;
+  personalityId: string;
+  codeName: string;
+  accentColor: string;
+  archetype: string;
+  line: string;
+  emotion: EmotionType;
+  visible: boolean;
+}
+

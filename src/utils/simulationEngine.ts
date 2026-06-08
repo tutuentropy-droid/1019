@@ -161,6 +161,7 @@ function buildPersonality(
 
   return {
     id: `p-${Date.now()}-${index}`,
+    archetype: seedArchetype,
     codeName,
     accentColor,
     tagline,

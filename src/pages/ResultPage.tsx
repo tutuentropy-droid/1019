@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeft, RefreshCcw, BarChart3, GitBranch } from 'lucide-react';
+import { ArrowLeft, RefreshCcw, BarChart3, GitBranch, MessageCircle } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import PersonalityCard from '@/components/PersonalityCard';
 import RadarChart from '@/components/RadarChart';
 import CausalChainPanel from '@/components/CausalChainPanel';
+import DialogueRoundtable from '@/components/DialogueRoundtable';
 
-type TabKey = 'overview' | 'radar' | 'causal';
+type TabKey = 'overview' | 'radar' | 'causal' | 'roundtable';
 
 export default function ResultPage() {
   const personalities = useAppStore((s) => s.personalities);
@@ -32,6 +33,7 @@ export default function ResultPage() {
 
   const TABS: { key: TabKey; label: string; icon: typeof BarChart3 }[] = [
     { key: 'overview', label: '人格画像', icon: BarChart3 },
+    { key: 'roundtable', label: '圆桌辩论', icon: MessageCircle },
     { key: 'radar', label: '维度对比', icon: BarChart3 },
     { key: 'causal', label: '因果溯源', icon: GitBranch }
   ];
@@ -73,103 +75,106 @@ export default function ResultPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <div className="flex gap-2 mb-5 flex-wrap">
-              {TABS.map((t) => {
-                const Icon = t.icon;
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => setActiveTab(t.key)}
-                    className={`tab-btn flex items-center gap-2 ${activeTab === t.key ? 'active' : ''}`}
-                  >
-                    <Icon size={15} />
-                    {t.label}
-                  </button>
-                );
-              })}
+        <div className="flex gap-2 mb-5 flex-wrap">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`tab-btn flex items-center gap-2 ${activeTab === t.key ? 'active' : ''}`}
+              >
+                <Icon size={15} />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {activeTab === 'roundtable' && <DialogueRoundtable personalities={personalities} />}
+
+        {activeTab !== 'roundtable' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              {activeTab === 'overview' && (
+                <div
+                  className={`grid gap-5 ${
+                    personalities.length <= 3
+                      ? 'grid-cols-1 md:grid-cols-3'
+                      : personalities.length === 4
+                      ? 'grid-cols-1 md:grid-cols-2'
+                      : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+                  }`}
+                >
+                  {personalities.map((p, i) => (
+                    <PersonalityCard
+                      key={p.id}
+                      personality={p}
+                      index={i}
+                      expanded={!!expandedMap[p.id]}
+                      onToggle={() => toggleExpand(p.id)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'radar' && (
+                <div className="glass-card p-6 animate-fade-in">
+                  <h3 className="text-white font-serif text-lg mb-4 text-center">大五人格维度对比</h3>
+                  <RadarChart personalities={personalities} />
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-mist-50">
+                      <div className="text-xs text-mist-400 font-mono uppercase mb-1">关于维度</div>
+                      <p className="text-mist-600 text-xs leading-relaxed">
+                        大五人格（Big Five）是心理学界最广泛认可的人格模型，包含开放性、尽责性、外向性、宜人性、神经质五个独立维度。
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-mist-50">
+                      <div className="text-xs text-mist-400 font-mono uppercase mb-1">如何解读</div>
+                      <p className="text-mist-600 text-xs leading-relaxed">
+                        分数代表该维度的倾向性而非好坏。高神经质可能意味着敏感的艺术感受力，低宜人性也可能是独立思考的代价。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'causal' && selected && (
+                <div className="glass-card p-6 animate-fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="inline-block w-3 h-3 rounded-full"
+                        style={{ backgroundColor: selected.accentColor, boxShadow: `0 0 12px ${selected.accentColor}` }}
+                      />
+                      <h3 className="text-white font-serif text-lg">「{selected.codeName}」的人格形成路径</h3>
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {personalities.map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setSelected(p.id)}
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-all
+                            ${p.id === selectedId
+                              ? 'text-white'
+                              : 'text-mist-400 hover:text-mist-600'}`}
+                          style={{
+                            backgroundColor: p.id === selectedId ? p.accentColor + '33' : 'transparent',
+                            border: p.id === selectedId ? `1px solid ${p.accentColor}66` : '1px solid transparent'
+                          }}
+                        >
+                          {p.codeName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <CausalChainPanel personality={selected} />
+                </div>
+              )}
             </div>
 
-            {activeTab === 'overview' && (
-              <div
-                className={`grid gap-5 ${
-                  personalities.length <= 3
-                    ? 'grid-cols-1 md:grid-cols-3'
-                    : personalities.length === 4
-                    ? 'grid-cols-1 md:grid-cols-2'
-                    : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
-                }`}
-              >
-                {personalities.map((p, i) => (
-                  <PersonalityCard
-                    key={p.id}
-                    personality={p}
-                    index={i}
-                    expanded={!!expandedMap[p.id]}
-                    onToggle={() => toggleExpand(p.id)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'radar' && (
-              <div className="glass-card p-6 animate-fade-in">
-                <h3 className="text-white font-serif text-lg mb-4 text-center">大五人格维度对比</h3>
-                <RadarChart personalities={personalities} />
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-mist-50">
-                    <div className="text-xs text-mist-400 font-mono uppercase mb-1">关于维度</div>
-                    <p className="text-mist-600 text-xs leading-relaxed">
-                      大五人格（Big Five）是心理学界最广泛认可的人格模型，包含开放性、尽责性、外向性、宜人性、神经质五个独立维度。
-                    </p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-mist-50">
-                    <div className="text-xs text-mist-400 font-mono uppercase mb-1">如何解读</div>
-                    <p className="text-mist-600 text-xs leading-relaxed">
-                      分数代表该维度的倾向性而非好坏。高神经质可能意味着敏感的艺术感受力，低宜人性也可能是独立思考的代价。
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'causal' && selected && (
-              <div className="glass-card p-6 animate-fade-in">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="inline-block w-3 h-3 rounded-full"
-                      style={{ backgroundColor: selected.accentColor, boxShadow: `0 0 12px ${selected.accentColor}` }}
-                    />
-                    <h3 className="text-white font-serif text-lg">「{selected.codeName}」的人格形成路径</h3>
-                  </div>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {personalities.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => setSelected(p.id)}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all
-                          ${p.id === selectedId
-                            ? 'text-white'
-                            : 'text-mist-400 hover:text-mist-600'}`}
-                        style={{
-                          backgroundColor: p.id === selectedId ? p.accentColor + '33' : 'transparent',
-                          border: p.id === selectedId ? `1px solid ${p.accentColor}66` : '1px solid transparent'
-                        }}
-                      >
-                        {p.codeName}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <CausalChainPanel personality={selected} />
-              </div>
-            )}
-          </div>
-
-          <div className="lg:col-span-1">
-            {selected && (
+            <div className="lg:col-span-1">
+              {selected && (
               <div
                 className="glass-card p-6 sticky top-8 animate-fade-in"
                 style={{ animationDelay: '0.2s', maxHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}
@@ -316,6 +321,7 @@ export default function ResultPage() {
             )}
           </div>
         </div>
+        )}
 
         <div className="mt-16 text-center">
           <p className="text-mist-300 text-xs">

@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { ParallelPersonality } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
+import AnimatedAvatar from './AnimatedAvatar';
 
 interface PersonalityCardProps {
   personality: ParallelPersonality;
@@ -43,17 +44,28 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
 
       <div className="p-5">
         <div className="flex items-start justify-between mb-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: personality.accentColor, boxShadow: `0 0 10px ${personality.accentColor}` }}
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 -mt-1">
+              <AnimatedAvatar
+                archetype={personality.archetype}
+                accentColor={personality.accentColor}
+                size="md"
+                pose="idle"
+                emotion="calm"
               />
-              <h3 className="font-serif text-xl font-bold text-white tracking-wide">
-                「{personality.codeName}」
-              </h3>
             </div>
-            <p className="text-mist-500 text-sm italic">{personality.tagline}</p>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className="inline-block w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: personality.accentColor, boxShadow: `0 0 10px ${personality.accentColor}` }}
+                />
+                <h3 className="font-serif text-xl font-bold text-white tracking-wide">
+                  「{personality.codeName}」
+                </h3>
+              </div>
+              <p className="text-mist-500 text-sm italic">{personality.tagline}</p>
+            </div>
           </div>
           <button
             onClick={(e) => {
