@@ -1,4 +1,5 @@
-import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights } from '@/types';
+import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent } from '@/types';
+import type { DivergenceEventTemplate } from '@/data/personalityTemplates';
 import { familyTemplates, eraTemplates, educationTemplates, traumaTemplates, resourcesTemplates, FactorTemplate } from '@/data/factorTemplates';
 import { archetypeLibrary, seedKeywords } from '@/data/personalityTemplates';
 import { causalChainTemplates } from '@/data/causalChainTemplates';
@@ -112,6 +113,35 @@ function generateCausalChain(
   return chain.sort((a, b) => a.age - b.age);
 }
 
+function buildProfile(
+  archetype: typeof archetypeLibrary[keyof typeof archetypeLibrary],
+  index: number
+): ProfileCard {
+  return {
+    background: archetype.backgrounds[index % archetype.backgrounds.length],
+    coreMotivation: archetype.coreMotivations[index % archetype.coreMotivations.length],
+    greatestFear: archetype.greatestFears[index % archetype.greatestFears.length],
+    dailyPattern: archetype.dailyPatterns[index % archetype.dailyPatterns.length],
+    loveView: archetype.loveViews[index % archetype.loveViews.length],
+    consumptionView: archetype.consumptionViews[index % archetype.consumptionViews.length],
+    workStyle: archetype.workStyles[index % archetype.workStyles.length]
+  };
+}
+
+function buildDivergenceEvent(
+  archetype: typeof archetypeLibrary[keyof typeof archetypeLibrary],
+  index: number
+): DivergenceEvent {
+  const events = archetype.divergenceEvents;
+  const selected = events[index % events.length] as DivergenceEventTemplate;
+  return {
+    age: selected.age,
+    title: selected.title,
+    event: selected.event,
+    consequence: selected.consequence
+  };
+}
+
 function buildPersonality(
   seedArchetype: string,
   factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate },
@@ -147,7 +177,9 @@ function buildPersonality(
       education: factors.education.label,
       trauma: factors.trauma.label,
       resources: factors.resources.label
-    }
+    },
+    profile: buildProfile(archetype, index),
+    divergenceEvent: buildDivergenceEvent(archetype, index)
   };
 }
 

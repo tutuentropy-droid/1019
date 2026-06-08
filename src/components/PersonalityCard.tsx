@@ -85,19 +85,64 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
         </div>
 
         {expanded && (
-          <div className="space-y-4 pt-4 border-t border-mist-100 animate-fade-in">
-            <div>
-              <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">性格画像</div>
-              <p className="text-mist-600 text-sm leading-relaxed">{personality.personality}</p>
+          <div className="space-y-5 pt-4 border-t border-mist-100 animate-fade-in">
+            <div className="relative">
+              <div
+                className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
+                style={{ backgroundColor: personality.accentColor }}
+              />
+              <div className="pl-4">
+                <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-2">成长背景</div>
+                <p className="text-mist-600 text-sm leading-relaxed">{personality.profile.background}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-mist-50/50">
+                <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-chronos" />
+                  核心驱动力
+                </div>
+                <p className="text-mist-600 text-sm leading-relaxed">{personality.profile.coreMotivation}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-mist-50/50">
+                <div className="text-xs font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#EF4444' }}>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+                  最大的恐惧
+                </div>
+                <p className="text-mist-600 text-sm leading-relaxed">{personality.profile.greatestFear}</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl" style={{ backgroundColor: personality.accentColor + '10' }}>
+              <div className="text-xs font-mono uppercase tracking-wider mb-2" style={{ color: personality.accentColor }}>
+                日常行为模式
+              </div>
+              <p className="text-mist-600 text-sm leading-relaxed">{personality.profile.dailyPattern}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 rounded-xl bg-mist-50/50">
+                <div className="text-xs font-mono text-nebula uppercase tracking-wider mb-1.5">爱情观</div>
+                <p className="text-mist-600 text-xs leading-relaxed">{personality.profile.loveView}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-mist-50/50">
+                <div className="text-xs font-mono text-ember uppercase tracking-wider mb-1.5">消费观</div>
+                <p className="text-mist-600 text-xs leading-relaxed">{personality.profile.consumptionView}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-mist-50/50">
+                <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">工作风格</div>
+                <p className="text-mist-600 text-xs leading-relaxed">{personality.profile.workStyle}</p>
+              </div>
             </div>
 
             <div>
               <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">口头禅</div>
-              <div className="space-y-1.5">
+              <div className="flex flex-wrap gap-1.5">
                 {personality.catchphrase.map((c, i) => (
                   <div
                     key={i}
-                    className="text-ember text-sm font-serif italic bg-mist-50 px-3 py-1.5 rounded-lg inline-block mr-2 mb-1"
+                    className="text-ember text-sm font-serif italic bg-mist-50 px-3 py-1.5 rounded-lg"
                   >
                     {c}
                   </div>
@@ -105,40 +150,65 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
               </div>
             </div>
 
-            <div>
-              <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">核心价值观</div>
-              <ul className="space-y-1">
-                {personality.values.map((v, i) => (
-                  <li key={i} className="text-mist-600 text-sm flex items-start gap-2">
-                    <span className="text-nebula mt-0.5">◆</span>
-                    <span>{v}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">核心价值观</div>
+                <ul className="space-y-1">
+                  {personality.values.map((v, i) => (
+                    <li key={i} className="text-mist-600 text-sm flex items-start gap-2">
+                      <span className="text-nebula mt-0.5">◆</span>
+                      <span>{v}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">典型内在矛盾</div>
+                <ul className="space-y-1.5">
+                  {personality.contradictions.map((c, i) => (
+                    <li key={i} className="text-mist-600 text-sm flex items-start gap-2">
+                      <span className="text-nebula mt-0.5">⇌</span>
+                      <span className="italic">{c}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
-            <div>
-              <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">关键人生选择</div>
-              <ul className="space-y-1.5">
-                {personality.lifeChoices.map((lc, i) => (
-                  <li key={i} className="text-mist-600 text-sm flex items-start gap-2">
-                    <span className="text-chronos mt-0.5 font-mono text-xs">0{i + 1}</span>
-                    <span>{lc}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">典型内在矛盾</div>
-              <ul className="space-y-1.5">
-                {personality.contradictions.map((c, i) => (
-                  <li key={i} className="text-mist-600 text-sm flex items-start gap-2">
-                    <span className="text-nebula mt-0.5">⇌</span>
-                    <span className="italic">{c}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="relative pt-3">
+              <div className="divider-gradient mb-4" />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 -top-0.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium"
+                style={{
+                  backgroundColor: personality.accentColor + '22',
+                  color: personality.accentColor
+                }}
+              >
+                · 关键分岔事件 · {personality.divergenceEvent.age}岁 ·
+              </div>
+              <div className="pt-4">
+                <h4 className="font-serif text-lg text-white mb-3 text-center">
+                  「{personality.divergenceEvent.title}」
+                </h4>
+                <div className="space-y-3">
+                  <div className="p-4 rounded-xl bg-mist-50/50">
+                    <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">事件经过</div>
+                    <p className="text-mist-600 text-sm leading-relaxed">{personality.divergenceEvent.event}</p>
+                  </div>
+                  <div
+                    className="p-4 rounded-xl"
+                    style={{
+                      backgroundColor: personality.accentColor + '15',
+                      borderLeft: `3px solid ${personality.accentColor}`
+                    }}
+                  >
+                    <div className="text-xs font-mono uppercase tracking-wider mb-1.5" style={{ color: personality.accentColor }}>
+                      人格转向
+                    </div>
+                    <p className="text-mist-600 text-sm leading-relaxed">{personality.divergenceEvent.consequence}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

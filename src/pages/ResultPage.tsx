@@ -172,7 +172,7 @@ export default function ResultPage() {
             {selected && (
               <div
                 className="glass-card p-6 sticky top-8 animate-fade-in"
-                style={{ animationDelay: '0.2s' }}
+                style={{ animationDelay: '0.2s', maxHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}
               >
                 <div
                   className="h-1.5 w-full rounded-full mb-5"
@@ -180,7 +180,7 @@ export default function ResultPage() {
                     background: `linear-gradient(90deg, ${selected.accentColor}, transparent)`
                   }}
                 />
-                <div className="text-xs text-mist-400 font-mono uppercase tracking-wider mb-2">当前聚焦</div>
+                <div className="text-xs text-mist-400 font-mono uppercase tracking-wider mb-2">人格档案卡</div>
                 <h2 className="font-serif text-2xl font-bold text-white mb-1 flex items-center gap-2">
                   <span
                     className="inline-block w-2.5 h-2.5 rounded-full"
@@ -193,18 +193,57 @@ export default function ResultPage() {
                 <div className="divider-gradient mb-5" />
 
                 <div className="space-y-4">
-                  <div>
-                    <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-2">性格画像</div>
-                    <p className="text-mist-600 text-sm leading-relaxed">{selected.personality}</p>
+                  <div className="relative">
+                    <div
+                      className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
+                      style={{ backgroundColor: selected.accentColor }}
+                    />
+                    <div className="pl-4">
+                      <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">成长背景</div>
+                      <p className="text-mist-600 text-xs leading-relaxed">{selected.profile.background}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 rounded-xl bg-mist-50/50">
+                      <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">核心驱动</div>
+                      <p className="text-mist-600 text-xs leading-relaxed">{selected.profile.coreMotivation}</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-mist-50/50">
+                      <div className="text-xs font-mono uppercase tracking-wider mb-1.5" style={{ color: '#EF4444' }}>最大恐惧</div>
+                      <p className="text-mist-600 text-xs leading-relaxed">{selected.profile.greatestFear}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl" style={{ backgroundColor: selected.accentColor + '10' }}>
+                    <div className="text-xs font-mono uppercase tracking-wider mb-1.5" style={{ color: selected.accentColor }}>
+                      日常行为模式
+                    </div>
+                    <p className="text-mist-600 text-xs leading-relaxed">{selected.profile.dailyPattern}</p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="p-2.5 rounded-xl bg-mist-50/50">
+                      <div className="text-xs font-mono text-nebula uppercase tracking-wider mb-1">爱情观</div>
+                      <p className="text-mist-600 text-[11px] leading-relaxed">{selected.profile.loveView}</p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-mist-50/50">
+                      <div className="text-xs font-mono text-ember uppercase tracking-wider mb-1">消费观</div>
+                      <p className="text-mist-600 text-[11px] leading-relaxed">{selected.profile.consumptionView}</p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-mist-50/50">
+                      <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1">工作风格</div>
+                      <p className="text-mist-600 text-[11px] leading-relaxed">{selected.profile.workStyle}</p>
+                    </div>
                   </div>
 
                   <div>
-                    <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-2">口头禅</div>
-                    <div className="space-y-1.5">
+                    <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">口头禅</div>
+                    <div className="flex flex-wrap gap-1.5">
                       {selected.catchphrase.map((c, i) => (
                         <div
                           key={i}
-                          className="text-ember text-sm font-serif italic bg-mist-50 px-3 py-2 rounded-lg"
+                          className="text-ember text-xs font-serif italic bg-mist-50 px-2.5 py-1.5 rounded-lg"
                         >
                           {c}
                         </div>
@@ -212,28 +251,65 @@ export default function ResultPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-2">核心价值观</div>
-                    <ul className="space-y-1.5">
-                      {selected.values.map((v, i) => (
-                        <li key={i} className="text-mist-600 text-sm flex items-start gap-2">
-                          <span className="text-nebula mt-0.5">◆</span>
-                          {v}
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="relative pt-2">
+                    <div className="divider-gradient mb-3" />
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2 -top-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium whitespace-nowrap"
+                      style={{
+                        backgroundColor: selected.accentColor + '22',
+                        color: selected.accentColor
+                      }}
+                    >
+                      · 关键分岔 · {selected.divergenceEvent.age}岁 ·
+                    </div>
+                    <div className="pt-3">
+                      <h4 className="font-serif text-base text-white mb-2 text-center">
+                        「{selected.divergenceEvent.title}」
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="p-3 rounded-xl bg-mist-50/50">
+                          <div className="text-[10px] font-mono text-chronos uppercase tracking-wider mb-1">事件经过</div>
+                          <p className="text-mist-600 text-xs leading-relaxed">{selected.divergenceEvent.event}</p>
+                        </div>
+                        <div
+                          className="p-3 rounded-xl"
+                          style={{
+                            backgroundColor: selected.accentColor + '15',
+                            borderLeft: `3px solid ${selected.accentColor}`
+                          }}
+                        >
+                          <div className="text-[10px] font-mono uppercase tracking-wider mb-1" style={{ color: selected.accentColor }}>
+                            人格转向
+                          </div>
+                          <p className="text-mist-600 text-xs leading-relaxed">{selected.divergenceEvent.consequence}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-2">典型矛盾</div>
-                    <ul className="space-y-1.5">
-                      {selected.contradictions.map((c, i) => (
-                        <li key={i} className="text-mist-600 text-sm flex items-start gap-2 italic">
-                          <span className="text-nebula mt-0.5">⇌</span>
-                          {c}
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">核心价值观</div>
+                      <ul className="space-y-1">
+                        {selected.values.map((v, i) => (
+                          <li key={i} className="text-mist-600 text-xs flex items-start gap-1.5">
+                            <span className="text-nebula mt-0.5 text-[10px]">◆</span>
+                            <span>{v}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono text-chronos uppercase tracking-wider mb-1.5">典型矛盾</div>
+                      <ul className="space-y-1">
+                        {selected.contradictions.map((c, i) => (
+                          <li key={i} className="text-mist-600 text-xs flex items-start gap-1.5 italic">
+                            <span className="text-nebula mt-0.5 text-[10px]">⇌</span>
+                            <span>{c}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
