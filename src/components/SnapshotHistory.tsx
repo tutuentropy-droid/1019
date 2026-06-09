@@ -220,14 +220,20 @@ export default function SnapshotHistory({ onSelect, compact = false }: Props) {
                   {!isEditing && (
                     <>
                       <button
-                        onClick={() => handleView(snap.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleView(snap.id);
+                        }}
                         className="p-1.5 rounded-lg text-mist-400 hover:text-white hover:bg-mist-100 transition-colors"
                         title="查看"
                       >
                         <Eye size={14} />
                       </button>
                       <button
-                        onClick={() => handleEdit(snap)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(snap);
+                        }}
                         className="p-1.5 rounded-lg text-mist-400 hover:text-white hover:bg-mist-100 transition-colors"
                         title="添加笔记"
                       >
@@ -235,7 +241,10 @@ export default function SnapshotHistory({ onSelect, compact = false }: Props) {
                       </button>
                       {!isDeleting ? (
                         <button
-                          onClick={() => setConfirmDelete(snap.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete(snap.id);
+                          }}
                           className="p-1.5 rounded-lg text-mist-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                           title="删除"
                         >
@@ -244,7 +253,8 @@ export default function SnapshotHistory({ onSelect, compact = false }: Props) {
                       ) : (
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               removeSnapshot(snap.id);
                               setConfirmDelete(null);
                             }}
@@ -253,7 +263,10 @@ export default function SnapshotHistory({ onSelect, compact = false }: Props) {
                             确认
                           </button>
                           <button
-                            onClick={() => setConfirmDelete(null)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDelete(null);
+                            }}
                             className="px-2 py-1 rounded-lg bg-mist-50 text-mist-400 text-[10px] hover:bg-mist-100 transition-colors"
                           >
                             取消

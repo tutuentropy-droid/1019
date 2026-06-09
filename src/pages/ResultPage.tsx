@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, RefreshCcw, BarChart3, GitBranch, MessageCircle, Clock, Save, TreeDeciduous, Sparkles, Check, Eye } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import PersonalityCard from '@/components/PersonalityCard';
@@ -30,6 +30,14 @@ export default function ResultPage() {
   const selected = personalities.find((p) => p.id === selectedId) || personalities[0];
   const snaps = getSnapshots();
   const currentSnapshot = viewingSnapshotId ? snaps.find((s) => s.id === viewingSnapshotId) : null;
+
+  const prevViewingIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (prevViewingIdRef.current !== null && prevViewingIdRef.current !== viewingSnapshotId && viewingSnapshotId !== null) {
+      setActiveTab('overview');
+    }
+    prevViewingIdRef.current = viewingSnapshotId;
+  }, [viewingSnapshotId]);
 
   const toggleExpand = (id: string) => {
     setExpandedMap((m) => ({ ...m, [id]: !m[id] }));
@@ -172,19 +180,19 @@ export default function ResultPage() {
         {activeTab === 'whatif' && viewingSnapshotId ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <WhatIfPanel snapshotId={viewingSnapshotId} />
+              <WhatIfPanel snapshotId={viewingSnapshotId} onScenarioGenerated={() => setActiveTab('overview')} />
             </div>
             <div className="lg:col-span-1">
-              <SnapshotHistory compact />
+              <SnapshotHistory compact onSelect={() => setActiveTab('overview')} />
             </div>
           </div>
         ) : activeTab === 'whatif' && snaps.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <WhatIfPanel snapshotId={snaps[0].id} />
+              <WhatIfPanel snapshotId={snaps[0].id} onScenarioGenerated={() => setActiveTab('overview')} />
             </div>
             <div className="lg:col-span-1">
-              <SnapshotHistory compact />
+              <SnapshotHistory compact onSelect={() => setActiveTab('overview')} />
             </div>
           </div>
         ) : activeTab === 'whatif' ? (
@@ -202,7 +210,7 @@ export default function ResultPage() {
           </div>
         ) : null}
 
-        {activeTab === 'history' && <SnapshotHistory />}
+        {activeTab === 'history' && <SnapshotHistory onSelect={() => setActiveTab('overview')} />}
 
         {activeTab === 'timeline' && selected && (
           <div className="animate-fade-in">

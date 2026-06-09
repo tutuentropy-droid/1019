@@ -28,7 +28,8 @@ const ARCHETYPE_COLORS: Record<string, string> = {
 
 export default function GrowthInsights() {
   const memory = useAppStore((s) => s.memory);
-  const insights = useAppStore((s) => s.getGrowthInsightList());
+  const getGrowthInsightList = useAppStore((s) => s.getGrowthInsightList);
+  const insights = getGrowthInsightList();
 
   const snapCount = Object.keys(memory.personalityTree.snapshots).length;
   const choiceCount = memory.choiceHistory.length;
