@@ -3,6 +3,7 @@ import StarfieldBackground from '@/components/StarfieldBackground';
 import Home from '@/pages/Home';
 import SimulatePage from '@/pages/SimulatePage';
 import ResultPage from '@/pages/ResultPage';
+import MemoryPage from '@/pages/MemoryPage';
 
 export default function App() {
   const stage = useAppStore((s) => s.stage);
@@ -16,6 +17,7 @@ export default function App() {
         {stage === 'home' && <Home />}
         {stage === 'simulating' && <SimulatePage />}
         {stage === 'result' && <ResultPage />}
+        {stage === 'memory' && <MemoryPage />}
       </div>
     </div>
   );

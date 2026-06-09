@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { ArrowLeft, RefreshCcw, BarChart3, GitBranch, MessageCircle, Clock } from 'lucide-react';
+import { ArrowLeft, RefreshCcw, BarChart3, GitBranch, MessageCircle, Clock, Save, TreeDeciduous, Sparkles, Check, Eye } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import PersonalityCard from '@/components/PersonalityCard';
 import RadarChart from '@/components/RadarChart';
 import CausalChainPanel from '@/components/CausalChainPanel';
 import DialogueRoundtable from '@/components/DialogueRoundtable';
 import LifeTimelinePanel from '@/components/LifeTimelinePanel';
+import WhatIfPanel from '@/components/WhatIfPanel';
+import SnapshotHistory from '@/components/SnapshotHistory';
 
-type TabKey = 'overview' | 'timeline' | 'radar' | 'causal' | 'roundtable';
+type TabKey = 'overview' | 'timeline' | 'radar' | 'causal' | 'roundtable' | 'whatif' | 'history';
 
 export default function ResultPage() {
   const personalities = useAppStore((s) => s.personalities);
@@ -17,11 +19,17 @@ export default function ResultPage() {
   const reset = useAppStore((s) => s.reset);
   const setStage = useAppStore((s) => s.setStage);
   const setSimulationProgress = useAppStore((s) => s.setSimulationProgress);
+  const saveCurrentAsSnapshot = useAppStore((s) => s.saveCurrentAsSnapshot);
+  const viewingSnapshotId = useAppStore((s) => s.viewingSnapshotId);
+  const getSnapshots = useAppStore((s) => s.getSnapshots);
 
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const selected = personalities.find((p) => p.id === selectedId) || personalities[0];
+  const snaps = getSnapshots();
+  const currentSnapshot = viewingSnapshotId ? snaps.find((s) => s.id === viewingSnapshotId) : null;
 
   const toggleExpand = (id: string) => {
     setExpandedMap((m) => ({ ...m, [id]: !m[id] }));
@@ -32,12 +40,23 @@ export default function ResultPage() {
     setStage('simulating');
   };
 
+  const handleSave = () => {
+    setSaveStatus('saving');
+    setTimeout(() => {
+      saveCurrentAsSnapshot();
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }, 500);
+  };
+
   const TABS: { key: TabKey; label: string; icon: typeof BarChart3 }[] = [
     { key: 'overview', label: '人格画像', icon: BarChart3 },
     { key: 'timeline', label: '人生时间线', icon: Clock },
     { key: 'roundtable', label: '圆桌辩论', icon: MessageCircle },
     { key: 'radar', label: '维度对比', icon: BarChart3 },
-    { key: 'causal', label: '因果溯源', icon: GitBranch }
+    { key: 'causal', label: '因果溯源', icon: GitBranch },
+    { key: 'whatif', label: '如果当时', icon: GitBranch },
+    { key: 'history', label: '历史版本', icon: Clock }
   ];
 
   return (
@@ -55,23 +74,78 @@ export default function ResultPage() {
               <h1 className="font-serif text-3xl md:text-4xl font-bold text-white">
                 <span className="gradient-text">平行人格</span> 推演结果
               </h1>
+              {viewingSnapshotId && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-chronos/15 text-chronos text-xs font-mono">
+                  <Eye size={12} />
+                  正在查看历史版本
+                </span>
+              )}
             </div>
             <p className="text-mist-500 text-sm ml-11">
               基于你的输入，我们生成了 {personalities.length} 个可能演化出的人格版本
+              {currentSnapshot && currentSnapshot.note && (
+                <span className="text-chronos ml-2">📝 {currentSnapshot.note}</span>
+              )}
             </p>
           </div>
-          <button
-            onClick={handleReSimulate}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-mist-50 hover:bg-mist-100
-              border border-mist-100 text-mist-600 hover:text-white transition-all self-start md:self-auto"
-          >
-            <RefreshCcw size={16} />
-            重新推演
-          </button>
+          <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+            <button
+              onClick={handleSave}
+              disabled={saveStatus !== 'idle'}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all
+                ${saveStatus === 'saved'
+                  ? 'bg-chronos/20 text-chronos border border-chronos/40'
+                  : 'bg-mist-50 hover:bg-mist-100 border border-mist-100 text-mist-600 hover:text-white'
+                } disabled:cursor-not-allowed`}
+            >
+              {saveStatus === 'saved' ? (
+                <>
+                  <Check size={16} />
+                  已保存到档案
+                </>
+              ) : saveStatus === 'saving' ? (
+                <>
+                  <Sparkles size={16} className="animate-pulse" />
+                  保存中...
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  保存到档案
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => setStage('memory')}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nebula/15 hover:bg-nebula/25
+                border border-nebula/30 text-nebula transition-all"
+            >
+              <TreeDeciduous size={16} />
+              人格档案
+            </button>
+            <button
+              onClick={handleReSimulate}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-mist-50 hover:bg-mist-100
+                border border-mist-100 text-mist-600 hover:text-white transition-all"
+            >
+              <RefreshCcw size={16} />
+              重新推演
+            </button>
+          </div>
         </div>
 
         <div className="glass-card p-4 md:p-5 mb-8 animate-fade-in">
-          <div className="text-xs text-mist-400 font-mono uppercase tracking-wider mb-2">原始输入</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs text-mist-400 font-mono uppercase tracking-wider">原始输入</div>
+            {viewingSnapshotId && (
+              <button
+                onClick={() => setStage('memory')}
+                className="text-[10px] text-chronos font-mono hover:underline"
+              >
+                跳转到档案 →
+              </button>
+            )}
+          </div>
           <p className="text-mist-700 font-serif italic leading-relaxed">
             "{input.content}"
           </p>
@@ -94,6 +168,41 @@ export default function ResultPage() {
         </div>
 
         {activeTab === 'roundtable' && <DialogueRoundtable personalities={personalities} />}
+
+        {activeTab === 'whatif' && viewingSnapshotId ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <WhatIfPanel snapshotId={viewingSnapshotId} />
+            </div>
+            <div className="lg:col-span-1">
+              <SnapshotHistory compact />
+            </div>
+          </div>
+        ) : activeTab === 'whatif' && snaps.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <WhatIfPanel snapshotId={snaps[0].id} />
+            </div>
+            <div className="lg:col-span-1">
+              <SnapshotHistory compact />
+            </div>
+          </div>
+        ) : activeTab === 'whatif' ? (
+          <div className="glass-card p-8 text-center">
+            <GitBranch size={32} className="mx-auto text-ember opacity-40 mb-3" />
+            <p className="text-mist-500 font-serif text-lg mb-2">先保存这次推演</p>
+            <p className="text-mist-400 text-sm mb-4">保存后即可基于此版本探索"如果当时"的分岔路径</p>
+            <button
+              onClick={handleSave}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ember/20 text-ember text-sm hover:bg-ember/30 transition-colors"
+            >
+              <Save size={14} />
+              保存并开始探索
+            </button>
+          </div>
+        ) : null}
+
+        {activeTab === 'history' && <SnapshotHistory />}
 
         {activeTab === 'timeline' && selected && (
           <div className="animate-fade-in">
@@ -130,7 +239,7 @@ export default function ResultPage() {
           </div>
         )}
 
-        {activeTab !== 'roundtable' && activeTab !== 'timeline' && (
+        {activeTab !== 'roundtable' && activeTab !== 'timeline' && activeTab !== 'whatif' && activeTab !== 'history' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               {activeTab === 'overview' && (
@@ -364,7 +473,7 @@ export default function ResultPage() {
           <p className="text-mist-300 text-xs">
             人格并非命运，它是我们与世界反复互动中沉淀的形状。
             <br />
-            每一个平行版本，都是你身上真实存在的可能性。
+            每一个平行版本，都是你身上真实存在的可能性。保存这个版本，继续探索更多分岔。
           </p>
         </div>
       </div>

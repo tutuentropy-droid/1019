@@ -15,6 +15,71 @@ export interface SimulationInput {
   factorWeights: FactorWeights;
 }
 
+export interface UserChoice {
+  id: string;
+  timestamp: number;
+  choiceType: 'input' | 'personality_select' | 'factor_adjust' | 'path_diverge';
+  description: string;
+  details: Record<string, unknown>;
+}
+
+export interface PersonalitySnapshot {
+  id: string;
+  timestamp: number;
+  sessionId: string;
+  label: string;
+  input: SimulationInput;
+  personalities: ParallelPersonality[];
+  selectedPersonalityId: string | null;
+  note?: string;
+}
+
+export interface TreeNode {
+  id: string;
+  snapshotId: string;
+  timestamp: number;
+  parentId: string | null;
+  children: string[];
+  label: string;
+  depth: number;
+  dominantArchetype: string;
+  bigFiveAvg: BigFive;
+  divergeReason?: string;
+}
+
+export interface PersonalityTree {
+  rootId: string | null;
+  nodes: Record<string, TreeNode>;
+  snapshots: Record<string, PersonalitySnapshot>;
+}
+
+export interface WhatIfScenario {
+  id: string;
+  originalSnapshotId: string;
+  altSnapshotId: string;
+  divergePoint: string;
+  description: string;
+  variableChanged: Partial<SimulationInput>;
+  diffSummary: {
+    bigFiveChanges: Partial<BigFive>;
+    archetypeShift: string;
+    keyDifference: string;
+  };
+}
+
+export interface UserMemory {
+  id: string;
+  createdAt: number;
+  lastUpdated: number;
+  choiceHistory: UserChoice[];
+  personalityTree: PersonalityTree;
+  whatIfScenarios: WhatIfScenario[];
+  currentSnapshotId: string | null;
+  aggregatedBigFive: BigFive;
+  archetypeFrequency: Record<string, number>;
+  tags: string[];
+}
+
 export interface BigFive {
   openness: number;
   conscientiousness: number;
@@ -71,7 +136,7 @@ export interface ParallelPersonality {
   lifeTimeline: LifeTimeline;
 }
 
-export type AppStage = 'home' | 'simulating' | 'result';
+export type AppStage = 'home' | 'simulating' | 'result' | 'memory';
 
 export type EmotionType = 'calm' | 'passionate' | 'skeptical' | 'gentle' | 'analytical' | 'defiant';
 

@@ -1,5 +1,18 @@
 import { create } from 'zustand';
-import type { AppStage, SimulationInput, ParallelPersonality } from '@/types';
+import type { AppStage, SimulationInput, ParallelPersonality, UserMemory, PersonalitySnapshot, WhatIfScenario, SimulationInput as SimInput } from '@/types';
+import {
+  loadMemory,
+  saveMemory,
+  resetMemory,
+  createSnapshot,
+  getSnapshot,
+  getAllSnapshots,
+  createWhatIfScenario,
+  selectPersonalityInSnapshot,
+  updateSnapshotNote,
+  deleteSnapshot,
+  getGrowthInsights
+} from '@/utils/memoryStore';
 
 interface AppState {
   stage: AppStage;
@@ -9,6 +22,11 @@ interface AppState {
   isSimulating: boolean;
   simulationProgress: number;
 
+  memory: UserMemory;
+  memoryVersion: number;
+  viewingSnapshotId: string | null;
+  whatIfScenarios: WhatIfScenario[];
+
   setStage: (stage: AppStage) => void;
   updateInput: (partial: Partial<SimulationInput>) => void;
   setPersonalities: (personalities: ParallelPersonality[]) => void;
@@ -16,9 +34,20 @@ interface AppState {
   setIsSimulating: (val: boolean) => void;
   setSimulationProgress: (val: number) => void;
   reset: () => void;
+
+  refreshMemory: () => void;
+  saveCurrentAsSnapshot: (label?: string) => string;
+  loadSnapshot: (snapshotId: string) => void;
+  closeSnapshotView: () => void;
+  updateCurrentSnapshotNote: (note: string) => void;
+  removeSnapshot: (snapshotId: string) => void;
+  generateWhatIf: (snapshotId: string, variableChanged: Partial<SimInput>, description: string) => WhatIfScenario | null;
+  clearAllMemory: () => void;
+  getSnapshots: () => PersonalitySnapshot[];
+  getGrowthInsightList: () => string[];
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   stage: 'home',
   input: {
     mode: 'experience',
@@ -37,13 +66,27 @@ export const useAppStore = create<AppState>((set) => ({
   isSimulating: false,
   simulationProgress: 0,
 
+  memory: loadMemory(),
+  memoryVersion: 0,
+  viewingSnapshotId: null,
+  whatIfScenarios: [],
+
   setStage: (stage) => set({ stage }),
   updateInput: (partial) =>
     set((state) => ({
       input: { ...state.input, ...partial, factorWeights: { ...state.input.factorWeights, ...(partial.factorWeights || {}) } }
     })),
   setPersonalities: (personalities) => set({ personalities, selectedPersonalityId: personalities[0]?.id || null }),
-  setSelectedPersonality: (id) => set({ selectedPersonalityId: id }),
+  setSelectedPersonality: (id) => {
+    const state = get();
+    if (state.viewingSnapshotId) {
+      const mem = { ...state.memory };
+      selectPersonalityInSnapshot(mem, state.viewingSnapshotId, id);
+      set({ memory: mem, selectedPersonalityId: id, memoryVersion: state.memoryVersion + 1 });
+    } else {
+      set({ selectedPersonalityId: id });
+    }
+  },
   setIsSimulating: (val) => set({ isSimulating: val }),
   setSimulationProgress: (val) => set({ simulationProgress: val }),
   reset: () =>
@@ -52,6 +95,90 @@ export const useAppStore = create<AppState>((set) => ({
       personalities: [],
       selectedPersonalityId: null,
       isSimulating: false,
-      simulationProgress: 0
-    })
+      simulationProgress: 0,
+      viewingSnapshotId: null
+    }),
+
+  refreshMemory: () => {
+    const fresh = loadMemory();
+    set({ memory: fresh, memoryVersion: get().memoryVersion + 1 });
+  },
+
+  saveCurrentAsSnapshot: (label) => {
+    const state = get();
+    if (state.personalities.length === 0) return '';
+    const mem = JSON.parse(JSON.stringify(state.memory));
+    const result = createSnapshot(mem, state.input, state.personalities, state.selectedPersonalityId, label);
+    saveMemory(result.memory);
+    set({ memory: result.memory, memoryVersion: get().memoryVersion + 1, viewingSnapshotId: result.snapshotId });
+    return result.snapshotId;
+  },
+
+  loadSnapshot: (snapshotId) => {
+    const state = get();
+    const snap = getSnapshot(state.memory, snapshotId);
+    if (snap) {
+      set({
+        viewingSnapshotId: snapshotId,
+        input: JSON.parse(JSON.stringify(snap.input)),
+        personalities: JSON.parse(JSON.stringify(snap.personalities)),
+        selectedPersonalityId: snap.selectedPersonalityId,
+        stage: 'result'
+      });
+    }
+  },
+
+  closeSnapshotView: () => set({ viewingSnapshotId: null }),
+
+  updateCurrentSnapshotNote: (note) => {
+    const state = get();
+    if (!state.viewingSnapshotId) return;
+    const mem = JSON.parse(JSON.stringify(state.memory));
+    updateSnapshotNote(mem, state.viewingSnapshotId, note);
+    saveMemory(mem);
+    set({ memory: mem, memoryVersion: state.memoryVersion + 1 });
+  },
+
+  removeSnapshot: (snapshotId) => {
+    const state = get();
+    const mem = JSON.parse(JSON.stringify(state.memory));
+    deleteSnapshot(mem, snapshotId);
+    saveMemory(mem);
+    const newViewing = state.viewingSnapshotId === snapshotId ? null : state.viewingSnapshotId;
+    set({
+      memory: mem,
+      memoryVersion: state.memoryVersion + 1,
+      viewingSnapshotId: newViewing
+    });
+  },
+
+  generateWhatIf: (snapshotId, variableChanged, description) => {
+    const state = get();
+    try {
+      const mem = JSON.parse(JSON.stringify(state.memory));
+      const result = createWhatIfScenario(mem, snapshotId, variableChanged, description);
+      saveMemory(result.memory);
+      set({ memory: result.memory, memoryVersion: state.memoryVersion + 1 });
+      return result.scenario;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  },
+
+  clearAllMemory: () => {
+    const fresh = resetMemory();
+    set({
+      memory: fresh,
+      memoryVersion: get().memoryVersion + 1,
+      viewingSnapshotId: null,
+      personalities: [],
+      selectedPersonalityId: null,
+      stage: 'home'
+    });
+  },
+
+  getSnapshots: () => getAllSnapshots(get().memory),
+
+  getGrowthInsightList: () => getGrowthInsights(get().memory)
 }));
