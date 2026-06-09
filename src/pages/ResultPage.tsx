@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { ArrowLeft, RefreshCcw, BarChart3, GitBranch, MessageCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCcw, BarChart3, GitBranch, MessageCircle, Clock } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import PersonalityCard from '@/components/PersonalityCard';
 import RadarChart from '@/components/RadarChart';
 import CausalChainPanel from '@/components/CausalChainPanel';
 import DialogueRoundtable from '@/components/DialogueRoundtable';
+import LifeTimelinePanel from '@/components/LifeTimelinePanel';
 
-type TabKey = 'overview' | 'radar' | 'causal' | 'roundtable';
+type TabKey = 'overview' | 'timeline' | 'radar' | 'causal' | 'roundtable';
 
 export default function ResultPage() {
   const personalities = useAppStore((s) => s.personalities);
@@ -33,6 +34,7 @@ export default function ResultPage() {
 
   const TABS: { key: TabKey; label: string; icon: typeof BarChart3 }[] = [
     { key: 'overview', label: '人格画像', icon: BarChart3 },
+    { key: 'timeline', label: '人生时间线', icon: Clock },
     { key: 'roundtable', label: '圆桌辩论', icon: MessageCircle },
     { key: 'radar', label: '维度对比', icon: BarChart3 },
     { key: 'causal', label: '因果溯源', icon: GitBranch }
@@ -93,7 +95,42 @@ export default function ResultPage() {
 
         {activeTab === 'roundtable' && <DialogueRoundtable personalities={personalities} />}
 
-        {activeTab !== 'roundtable' && (
+        {activeTab === 'timeline' && selected && (
+          <div className="animate-fade-in">
+            <div className="glass-card p-4 md:p-5 mb-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-block w-3 h-3 rounded-full"
+                    style={{ backgroundColor: selected.accentColor, boxShadow: `0 0 12px ${selected.accentColor}` }}
+                  />
+                  <h3 className="text-white font-serif text-lg">选择要推演的平行人格</h3>
+                </div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {personalities.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => setSelected(p.id)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all
+                        ${p.id === selectedId
+                          ? 'text-white'
+                          : 'text-mist-400 hover:text-mist-600'}`}
+                      style={{
+                        backgroundColor: p.id === selectedId ? p.accentColor + '33' : 'transparent',
+                        border: p.id === selectedId ? `1px solid ${p.accentColor}66` : '1px solid transparent'
+                      }}
+                    >
+                      {p.codeName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <LifeTimelinePanel personality={selected} />
+          </div>
+        )}
+
+        {activeTab !== 'roundtable' && activeTab !== 'timeline' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               {activeTab === 'overview' && (

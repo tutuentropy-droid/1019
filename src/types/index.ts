@@ -68,6 +68,7 @@ export interface ParallelPersonality {
   };
   profile: ProfileCard;
   divergenceEvent: DivergenceEvent;
+  lifeTimeline: LifeTimeline;
 }
 
 export type AppStage = 'home' | 'simulating' | 'result';
@@ -95,5 +96,84 @@ export interface DialogueTurnDisplay {
   line: string;
   emotion: EmotionType;
   visible: boolean;
+}
+
+export type AgeStage = 20 | 30 | 40;
+
+export type EmotionTrend = 'rising' | 'falling' | 'stable' | 'turbulent';
+
+export interface ValueShift {
+  from: string;
+  to: string;
+  description: string;
+}
+
+export interface LifeMilestone {
+  title: string;
+  description: string;
+  impact: string;
+  type: 'turning_point' | 'trauma' | 'achievement' | 'loss' | 'awakening';
+}
+
+export interface AgeStageState {
+  selfIdentity: string;
+  occupation: string;
+  livingSituation: string;
+  emotionalState: string;
+  emotionalTrend: EmotionTrend;
+  keyQuote: string;
+  monologue: string;
+  values: string[];
+  milestone: LifeMilestone;
+  dailyLife: string;
+  innerConflict: string;
+  worldView: string;
+}
+
+export interface TimelineVisual {
+  sceneDescription: string;
+  colorPalette: string;
+  cameraAngle: string;
+  atmosphere: string;
+}
+
+export interface StoryboardShot {
+  shotNumber: number;
+  duration: string;
+  scene: string;
+  voiceover: string;
+  subtitle: string;
+  music: string;
+  visual: TimelineVisual;
+}
+
+export interface LifeTimeline {
+  id: string;
+  personalityId: string;
+  stages: Record<AgeStage, AgeStageState>;
+  valueShifts: ValueShift[];
+  erosionTrajectory: string;
+  preservationPoints: string[];
+  poster: TimelinePoster;
+  storyboard: StoryboardShot[];
+}
+
+export interface TimelinePoster {
+  title: string;
+  tagline: string;
+  goldenQuote: string;
+  subtitle: string;
+  characterLines: string[];
+  worldlineName: string;
+  visualTheme: string;
+}
+
+export interface TimelineTemplate {
+  stages: Record<AgeStage, AgeStageState>;
+  valueShifts: ValueShift[];
+  erosionTrajectories: string[];
+  preservationPoints: string[];
+  posters: TimelinePoster[];
+  storyboards: StoryboardShot[][];
 }
 

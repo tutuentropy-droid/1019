@@ -1,8 +1,9 @@
-import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent } from '@/types';
+import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent, LifeTimeline, AgeStage } from '@/types';
 import type { DivergenceEventTemplate } from '@/data/personalityTemplates';
 import { familyTemplates, eraTemplates, educationTemplates, traumaTemplates, resourcesTemplates, FactorTemplate } from '@/data/factorTemplates';
 import { archetypeLibrary, seedKeywords } from '@/data/personalityTemplates';
 import { causalChainTemplates } from '@/data/causalChainTemplates';
+import { timelineLibrary } from '@/data/timelineTemplates';
 
 const clamp = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n));
 const random = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -142,6 +143,50 @@ function buildDivergenceEvent(
   };
 }
 
+function buildLifeTimeline(
+  seedArchetype: string,
+  personalityId: string,
+  index: number,
+  codeName: string,
+  accentColor: string
+): LifeTimeline {
+  const template = timelineLibrary[seedArchetype];
+  if (!template) {
+    const fallbackTemplate = timelineLibrary['the-guardian'];
+    return buildLifeTimeline('the-guardian', personalityId, index, codeName, accentColor);
+  }
+
+  const poster = template.posters[index % template.posters.length];
+  const erosionTrajectory = template.erosionTrajectories[index % template.erosionTrajectories.length];
+  const storyboard = template.storyboards[index % template.storyboards.length];
+
+  const stagesWithFactors = {} as Record<AgeStage, any>;
+  const ages: AgeStage[] = [20, 30, 40];
+  
+  for (const age of ages) {
+    const stage = template.stages[age];
+    stagesWithFactors[age] = {
+      ...stage,
+      occupation: stage.occupation,
+      dailyLife: stage.dailyLife
+    };
+  }
+
+  return {
+    id: `tl-${Date.now()}-${index}`,
+    personalityId,
+    stages: stagesWithFactors,
+    valueShifts: template.valueShifts,
+    erosionTrajectory,
+    preservationPoints: template.preservationPoints,
+    poster: {
+      ...poster,
+      subtitle: `「${codeName}」世界线 · 20→30→40`
+    },
+    storyboard
+  };
+}
+
 function buildPersonality(
   seedArchetype: string,
   factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate },
@@ -159,8 +204,11 @@ function buildPersonality(
 
   const factorContext = `在「${factors.family.label}」「${factors.era.label}」「${factors.education.label}」「${factors.trauma.label}」「${factors.resources.label}」的多重作用下——`;
 
+  const id = `p-${Date.now()}-${index}`;
+  const lifeTimeline = buildLifeTimeline(seedArchetype, id, index, codeName, accentColor);
+
   return {
-    id: `p-${Date.now()}-${index}`,
+    id,
     archetype: seedArchetype,
     codeName,
     accentColor,
@@ -180,7 +228,8 @@ function buildPersonality(
       resources: factors.resources.label
     },
     profile: buildProfile(archetype, index),
-    divergenceEvent: buildDivergenceEvent(archetype, index)
+    divergenceEvent: buildDivergenceEvent(archetype, index),
+    lifeTimeline
   };
 }
 
