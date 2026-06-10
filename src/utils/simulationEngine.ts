@@ -1,7 +1,7 @@
-import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent, LifeTimeline, AgeStage } from '@/types';
+import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent, LifeTimeline, AgeStage, VisualDocumentary } from '@/types';
 import type { DivergenceEventTemplate } from '@/data/personalityTemplates';
 import { familyTemplates, eraTemplates, educationTemplates, traumaTemplates, resourcesTemplates, FactorTemplate } from '@/data/factorTemplates';
-import { archetypeLibrary, seedKeywords } from '@/data/personalityTemplates';
+import { archetypeLibrary, seedKeywords, visualDocumentaryLibrary } from '@/data/personalityTemplates';
 import { causalChainTemplates } from '@/data/causalChainTemplates';
 import { timelineLibrary } from '@/data/timelineTemplates';
 
@@ -187,6 +187,38 @@ function buildLifeTimeline(
   };
 }
 
+function buildVisualDocumentary(
+  seedArchetype: string,
+  index: number
+): VisualDocumentary {
+  const lib = visualDocumentaryLibrary[seedArchetype];
+  if (!lib) {
+    return {
+      appearanceEvolution: { age20: '', age30: '', age40: '' },
+      dressStyle: '',
+      livingSpace: '',
+      frequentScenes: [],
+      signatureMonologue: '',
+      conflictAxes: [],
+      characterSilhouette: ''
+    };
+  }
+
+  const appearance = lib.appearanceEvolution[index % lib.appearanceEvolution.length];
+  const conflictSet = lib.conflictAxes[index % lib.conflictAxes.length];
+  const scenes = lib.frequentScenes[index % lib.frequentScenes.length];
+
+  return {
+    appearanceEvolution: appearance,
+    dressStyle: lib.dressStyle[index % lib.dressStyle.length],
+    livingSpace: lib.livingSpace[index % lib.livingSpace.length],
+    frequentScenes: scenes,
+    signatureMonologue: lib.signatureMonologue[index % lib.signatureMonologue.length],
+    conflictAxes: conflictSet,
+    characterSilhouette: lib.characterSilhouette[index % lib.characterSilhouette.length]
+  };
+}
+
 function buildPersonality(
   seedArchetype: string,
   factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate },
@@ -206,6 +238,7 @@ function buildPersonality(
 
   const id = `p-${Date.now()}-${index}`;
   const lifeTimeline = buildLifeTimeline(seedArchetype, id, index, codeName, accentColor);
+  const visualDocumentary = buildVisualDocumentary(seedArchetype, index);
 
   return {
     id,
@@ -229,7 +262,8 @@ function buildPersonality(
     },
     profile: buildProfile(archetype, index),
     divergenceEvent: buildDivergenceEvent(archetype, index),
-    lifeTimeline
+    lifeTimeline,
+    visualDocumentary
   };
 }
 

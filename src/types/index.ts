@@ -111,6 +111,29 @@ export interface ProfileCard {
   workStyle: string;
 }
 
+export interface AppearanceEvolution {
+  age20: string;
+  age30: string;
+  age40: string;
+}
+
+export interface PersonalityConflictAxis {
+  leftLabel: string;
+  rightLabel: string;
+  intensity: number;
+  description: string;
+}
+
+export interface VisualDocumentary {
+  appearanceEvolution: AppearanceEvolution;
+  dressStyle: string;
+  livingSpace: string;
+  frequentScenes: string[];
+  signatureMonologue: string;
+  conflictAxes: PersonalityConflictAxis[];
+  characterSilhouette: string;
+}
+
 export interface ParallelPersonality {
   id: string;
   archetype: string;
@@ -134,6 +157,7 @@ export interface ParallelPersonality {
   profile: ProfileCard;
   divergenceEvent: DivergenceEvent;
   lifeTimeline: LifeTimeline;
+  visualDocumentary: VisualDocumentary;
 }
 
 export type AppStage = 'home' | 'simulating' | 'result' | 'memory';
