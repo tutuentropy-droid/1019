@@ -72,8 +72,27 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'history'>('presets');
 
+  function resolveRootOriginalId(snapId: string): string {
+    let current = snapId;
+    const visited = new Set<string>();
+    while (!visited.has(current)) {
+      visited.add(current);
+      const asAlt = memory.whatIfScenarios.find((s) => s.altSnapshotId === current);
+      if (!asAlt) break;
+      current = asAlt.originalSnapshotId;
+    }
+    return current;
+  }
+
+  const rootOriginalId = resolveRootOriginalId(snapshotId);
+  const baseSnapshotId = rootOriginalId;
   const snap = memory.personalityTree.snapshots[snapshotId];
-  const scenarios = memory.whatIfScenarios.filter((s) => s.originalSnapshotId === snapshotId);
+  const baseSnap = memory.personalityTree.snapshots[baseSnapshotId] || snap;
+  const currentlyViewingAltId = memory.whatIfScenarios.find((s) => s.altSnapshotId === snapshotId)?.id;
+
+  const scenarios = memory.whatIfScenarios.filter((s) => {
+    return resolveRootOriginalId(s.originalSnapshotId) === baseSnapshotId;
+  });
 
   if (!snap) {
     return (
@@ -85,12 +104,12 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
 
   const handleGeneratePreset = (index: number) => {
     const preset = PRESET_SCENARIOS[index];
-    const changes = preset.modify(snap.input);
+    const changes = preset.modify(baseSnap.input);
     setIsGenerating(true);
     setSelectedPreset(index);
 
     setTimeout(() => {
-      const scenario = generateWhatIf(snapshotId, changes, preset.label);
+      const scenario = generateWhatIf(baseSnapshotId, changes, preset.label);
       setIsGenerating(false);
       setSelectedPreset(null);
       if (scenario && onScenarioGenerated) {
@@ -105,7 +124,7 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
 
     setTimeout(() => {
       const scenario = generateWhatIf(
-        snapshotId,
+        baseSnapshotId,
         { content: customContent },
         customContent.slice(0, 30)
       );
@@ -154,8 +173,8 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
                   <p className="text-mist-400 text-xs">{preset.description}</p>
 
                   <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {Object.entries(preset.modify(snap.input).factorWeights || {}).map(([k, v]) => {
-                      const original = snap.input.factorWeights[k as keyof FactorWeights];
+                    {Object.entries(preset.modify(baseSnap.input).factorWeights || {}).map(([k, v]) => {
+                      const original = baseSnap.input.factorWeights[k as keyof FactorWeights];
                       const diff = (v as number) - original;
                       if (diff === 0) return null;
                       const config = FACTOR_CONFIG.find((f) => f.key === k);
@@ -234,10 +253,15 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
           ) : (
             scenarios.slice().reverse().map((scenario) => {
               const altSnap = memory.personalityTree.snapshots[scenario.altSnapshotId];
+              const isCurrent = currentlyViewingAltId === scenario.id;
               return (
                 <div
                   key={scenario.id}
-                  className="p-4 rounded-xl bg-mist-50/50 border border-transparent hover:border-nebula/30 transition-all"
+                  className={`p-4 rounded-xl border transition-all ${
+                    isCurrent
+                      ? 'bg-nebula/10 border-nebula/50'
+                      : 'bg-mist-50/50 border-transparent hover:border-nebula/30'
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -288,11 +312,26 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
         </div>
       )}
 
-      <div className="mt-5 pt-5 border-t border-mist-100">
+      <div className="mt-5 pt-5 border-t border-mist-100 space-y-2">
+        {currentlyViewingAltId && (
+          <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-nebula/10 border border-nebula/30">
+            <Sparkles size={12} className="text-nebula" />
+            <span className="text-nebula">你正在查看一个分岔版本</span>
+            <button
+              onClick={() => {
+                loadSnapshot(baseSnapshotId);
+                onScenarioGenerated?.(baseSnapshotId);
+              }}
+              className="ml-auto text-nebula hover:text-nebula/70 underline underline-offset-2"
+            >
+              返回原始版本
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-xs text-mist-400">
           <Sparkles size={12} className="text-ember" />
           <span>
-            当前快照原始输入："{snap.input.content.length > 50 ? snap.input.content.slice(0, 50) + '…' : snap.input.content}"
+            基于原始输入："{baseSnap.input.content.length > 50 ? baseSnap.input.content.slice(0, 50) + '…' : baseSnap.input.content}"
           </span>
         </div>
       </div>

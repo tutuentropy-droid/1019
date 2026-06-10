@@ -124,7 +124,9 @@ export function createSnapshot(
   input: SimulationInput,
   personalities: ParallelPersonality[],
   selectedPersonalityId: string | null,
-  label?: string
+  label?: string,
+  divergeReason?: string,
+  parentSnapshotId?: string
 ): { memory: UserMemory; snapshotId: string; nodeId: string } {
   const now = Date.now();
   const sessionId = `session-${now}`;
@@ -148,7 +150,8 @@ export function createSnapshot(
   };
 
   const tree = memory.personalityTree;
-  const parentId = memory.currentSnapshotId ? tree.snapshots[memory.currentSnapshotId] ? findNodeIdBySnapshotId(tree, memory.currentSnapshotId) : null : null;
+  const effectiveParentId = parentSnapshotId ?? memory.currentSnapshotId;
+  const parentId = effectiveParentId && tree.snapshots[effectiveParentId] ? findNodeIdBySnapshotId(tree, effectiveParentId) : null;
   const parentNode = parentId ? tree.nodes[parentId] : null;
 
   const node: TreeNode = {
@@ -160,7 +163,8 @@ export function createSnapshot(
     label: autoLabel,
     depth: parentNode ? parentNode.depth + 1 : 0,
     dominantArchetype: dominantArchetype(personalities),
-    bigFiveAvg: avgBigFive(personalities)
+    bigFiveAvg: avgBigFive(personalities),
+    divergeReason
   };
 
   if (parentNode) {
@@ -263,7 +267,9 @@ export function createWhatIfScenario(
     altInput,
     altPersonalities,
     altPersonalities[0]?.id || null,
-    `如果... ${description}`
+    `如果... ${description}`,
+    `分叉: ${description.slice(0, 16)}`,
+    originalSnapshotId
   );
 
   const originalSelected = original.personalities.find((p) => p.id === original.selectedPersonalityId) || original.personalities[0];

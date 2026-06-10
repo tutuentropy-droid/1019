@@ -108,7 +108,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     if (state.personalities.length === 0) return '';
     const mem = JSON.parse(JSON.stringify(state.memory));
-    const result = createSnapshot(mem, state.input, state.personalities, state.selectedPersonalityId, label);
+    const parentSnapId = state.viewingSnapshotId ?? mem.currentSnapshotId;
+    const result = createSnapshot(mem, state.input, state.personalities, state.selectedPersonalityId, label, undefined, parentSnapId);
     saveMemory(result.memory);
     set({ memory: result.memory, memoryVersion: get().memoryVersion + 1, viewingSnapshotId: result.snapshotId });
     return result.snapshotId;
@@ -116,9 +117,14 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   loadSnapshot: (snapshotId) => {
     const state = get();
-    const snap = getSnapshot(state.memory, snapshotId);
+    const mem = JSON.parse(JSON.stringify(state.memory));
+    const snap = getSnapshot(mem, snapshotId);
     if (snap) {
+      mem.currentSnapshotId = snapshotId;
+      saveMemory(mem);
       set({
+        memory: mem,
+        memoryVersion: state.memoryVersion + 1,
         viewingSnapshotId: snapshotId,
         input: JSON.parse(JSON.stringify(snap.input)),
         personalities: JSON.parse(JSON.stringify(snap.personalities)),
