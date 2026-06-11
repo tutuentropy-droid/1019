@@ -23,6 +23,14 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
   const selectedId = useAppStore((s) => s.selectedPersonalityId);
   const isSelected = selectedId === personality.id;
 
+  const tradeOff = personality.lifeTradeOff ?? {
+    gains: [],
+    losses: [],
+    regrets: ['该版本生成于代价计算功能上线前，无历史得失账本记录。'],
+    exchangeFormula: '（旧版本数据：未启用交换公式）',
+    hiddenCost: '请使用新版本系统重新推演本次人格，可获取完整人生代价维度。'
+  };
+
   return (
     <div
       className={`glass-card overflow-hidden transition-all duration-500 cursor-pointer
@@ -209,7 +217,7 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
                       ✦ 得到了什么（贷方）
                     </div>
                     <ul className="space-y-3">
-                      {personality.lifeTradeOff.gains.map((g, i) => (
+                      {tradeOff.gains.map((g, i) => (
                         <li key={i} className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span
@@ -237,7 +245,7 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
                       ✦ 失去了什么（借方）
                     </div>
                     <ul className="space-y-3">
-                      {personality.lifeTradeOff.losses.map((l, i) => (
+                      {tradeOff.losses.map((l, i) => (
                         <li key={i} className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span
@@ -266,7 +274,7 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
                     ∑ 交换公式
                   </div>
                   <p className="text-mist-200 text-sm font-serif italic leading-relaxed">
-                    {personality.lifeTradeOff.exchangeFormula}
+                    {tradeOff.exchangeFormula}
                   </p>
                 </div>
 
@@ -276,7 +284,7 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
                     隐性成本（对账单上看不到的那一行）
                   </div>
                   <p className="text-mist-400 text-sm leading-relaxed">
-                    {personality.lifeTradeOff.hiddenCost}
+                    {tradeOff.hiddenCost}
                   </p>
                 </div>
 
@@ -285,7 +293,7 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
                     ✦ 未完成事项清单 · 那些这辈子都会欠着的遗憾
                   </div>
                   <ul className="space-y-2.5">
-                    {personality.lifeTradeOff.regrets.map((r, i) => (
+                    {tradeOff.regrets.map((r, i) => (
                       <li key={i} className="text-mist-600 text-sm flex items-start gap-2.5">
                         <span className="text-amber-500 mt-0.5 flex-shrink-0">✗</span>
                         <span className="italic leading-relaxed">{r}</span>

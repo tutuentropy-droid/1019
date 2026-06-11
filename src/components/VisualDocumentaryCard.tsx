@@ -16,6 +16,13 @@ const AGE_LABELS: Record<AgeStage, string> = {
 
 export default function VisualDocumentaryCard({ personality }: Props) {
   const vd = personality.visualDocumentary;
+  const tradeOff = personality.lifeTradeOff ?? {
+    gains: [],
+    losses: [],
+    regrets: ['该版本生成于代价计算功能上线前，无法提供人生账本。'],
+    exchangeFormula: '（旧版本数据：无交换公式）',
+    hiddenCost: '请使用新版本系统重新推演本次人格，可获取完整代价维度数据。'
+  };
 
   return (
     <div className="space-y-6">
@@ -213,6 +220,94 @@ export default function VisualDocumentaryCard({ personality }: Props) {
               <p className="text-mist-500 text-xs leading-relaxed italic">{axis.description}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div
+        className="glass-card p-5 md:p-6 animate-fade-in"
+        style={{ animationDelay: '0.13s', border: `1px solid #F59E0B33` }}
+      >
+        <div className="flex items-center gap-2 mb-5">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-amber-500 text-lg">⚖</span>
+          </div>
+          <div>
+            <h3 className="text-white font-serif text-lg">人生资产负债表</h3>
+            <p className="text-mist-400 text-xs">这一辈子，你交换了什么</p>
+          </div>
+        </div>
+
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-emerald-500/10 border-l-4 border-emerald-500">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-emerald-500 mb-3">✦ 这一辈子得到了什么</div>
+              {tradeOff.gains.length === 0 ? (
+                <p className="text-mist-500 text-xs italic">无记录（旧版本无此数据）</p>
+              ) : (
+                <ul className="space-y-2.5">
+                  {tradeOff.gains.map((g, i) => (
+                  <li key={i}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/30 text-emerald-500 text-[10px] font-mono">
+                        {g.weight === 'heavy' ? '重' : g.weight === 'medium' ? '中' : '轻'}
+                      </span>
+                      <span className="text-white text-xs font-medium">{g.label}</span>
+                    </div>
+                    <p className="text-mist-500 text-[11px] leading-relaxed">{g.description}</p>
+                  </li>
+                ))}
+                </ul>
+              )}
+            </div>
+            <div className="p-4 rounded-xl bg-red-500/10 border-l-4 border-red-500">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-red-500 mb-3">✦ 这一辈子失去了什么</div>
+              {tradeOff.losses.length === 0 ? (
+                <p className="text-mist-500 text-xs italic">无记录（旧版本无此数据）</p>
+              ) : (
+                <ul className="space-y-2.5">
+                  {tradeOff.losses.map((l, i) => (
+                    <li key={i}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="px-2 py-0.5 rounded bg-red-500/30 text-red-500 text-[10px] font-mono">
+                          {l.weight === 'heavy' ? '重' : l.weight === 'medium' ? '中' : '轻'}
+                        </span>
+                        <span className="text-white text-xs font-medium">{l.label}</span>
+                      </div>
+                      <p className="text-mist-500 text-[11px] leading-relaxed">{l.description}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl" style={{ backgroundColor: personality.accentColor + '12', borderLeft: `3px solid ${personality.accentColor}` }}>
+            <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: personality.accentColor }}>
+              ∑ 交换公式
+            </div>
+            <p className="text-mist-200 text-sm font-serif italic leading-relaxed">{tradeOff.exchangeFormula}</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/8 to-orange-500/8 border-l-4 border-amber-500">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-amber-500 mb-2">
+              <span>⚠</span> 隐性成本 · 对账单上看不到的那一行
+            </div>
+            <p className="text-mist-400 text-sm leading-relaxed">{tradeOff.hiddenCost}</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-mist-50/60">
+            <div className="text-[10px] font-mono text-nebula uppercase tracking-wider mb-3">
+              ✦ 未完成事项清单 · 这辈子欠着的三个遗憾
+            </div>
+            <ul className="space-y-2">
+              {tradeOff.regrets.map((r, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span className="text-amber-500 mt-0.5 text-xs">✗</span>
+                  <span className="text-mist-600 text-xs italic leading-relaxed">{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 

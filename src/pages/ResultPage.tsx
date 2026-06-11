@@ -217,7 +217,17 @@ export default function ResultPage() {
         {activeTab === 'whatif' && viewingSnapshotId ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <WhatIfPanel snapshotId={viewingSnapshotId} onScenarioGenerated={() => setActiveTab('overview')} />
+              <WhatIfPanel snapshotId={viewingSnapshotId} onScenarioGenerated={(altId) => {
+                if (altId) {
+                  setTimeout(() => {
+                    setActiveTab('overview');
+                    const el = document.querySelector('[data-personality-grid]');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 100);
+                } else {
+                  setActiveTab('overview');
+                }
+              }} />
             </div>
             <div className="lg:col-span-1">
               <SnapshotHistory compact onSelect={() => setActiveTab('overview')} />
@@ -226,7 +236,17 @@ export default function ResultPage() {
         ) : activeTab === 'whatif' && snaps.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <WhatIfPanel snapshotId={snaps[0].id} onScenarioGenerated={() => setActiveTab('overview')} />
+              <WhatIfPanel snapshotId={snaps[0].id} onScenarioGenerated={(altId) => {
+                if (altId) {
+                  setTimeout(() => {
+                    setActiveTab('overview');
+                    const el = document.querySelector('[data-personality-grid]');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 100);
+                } else {
+                  setActiveTab('overview');
+                }
+              }} />
             </div>
             <div className="lg:col-span-1">
               <SnapshotHistory compact onSelect={() => setActiveTab('overview')} />
@@ -289,6 +309,7 @@ export default function ResultPage() {
             <div className="lg:col-span-2">
               {activeTab === 'overview' && (
                 <div
+                  data-personality-grid
                   className={`grid gap-5 ${
                     personalities.length <= 3
                       ? 'grid-cols-1 md:grid-cols-3'

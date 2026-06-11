@@ -107,13 +107,17 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
     const changes = preset.modify(baseSnap.input);
     setIsGenerating(true);
     setSelectedPreset(index);
+    setActiveTab('history');
 
     setTimeout(() => {
       const scenario = generateWhatIf(baseSnapshotId, changes, preset.label);
       setIsGenerating(false);
       setSelectedPreset(null);
-      if (scenario && onScenarioGenerated) {
-        onScenarioGenerated(scenario.altSnapshotId);
+      if (scenario) {
+        loadSnapshot(scenario.altSnapshotId);
+        if (onScenarioGenerated) {
+          onScenarioGenerated(scenario.altSnapshotId);
+        }
       }
     }, 800);
   };
@@ -121,6 +125,7 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
   const handleGenerateCustom = () => {
     if (!customContent.trim()) return;
     setIsGenerating(true);
+    setActiveTab('history');
 
     setTimeout(() => {
       const scenario = generateWhatIf(
@@ -130,8 +135,11 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
       );
       setIsGenerating(false);
       setCustomContent('');
-      if (scenario && onScenarioGenerated) {
-        onScenarioGenerated(scenario.altSnapshotId);
+      if (scenario) {
+        loadSnapshot(scenario.altSnapshotId);
+        if (onScenarioGenerated) {
+          onScenarioGenerated(scenario.altSnapshotId);
+        }
       }
     }, 800);
   };
@@ -253,7 +261,28 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
           ) : (
             scenarios.slice().reverse().map((scenario) => {
               const altSnap = memory.personalityTree.snapshots[scenario.altSnapshotId];
+              const origSnap = memory.personalityTree.snapshots[scenario.originalSnapshotId];
               const isCurrent = currentlyViewingAltId === scenario.id;
+
+              const origP = origSnap?.personalities?.[origSnap.selectedPersonalityId ? origSnap.personalities.findIndex((pp) => pp.id === origSnap.selectedPersonalityId) : 0];
+              const altP = altSnap?.personalities?.[altSnap.selectedPersonalityId ? altSnap.personalities.findIndex((pp) => pp.id === altSnap.selectedPersonalityId) : 0];
+              const origTradeOff = origP?.lifeTradeOff;
+              const altTradeOff = altP?.lifeTradeOff;
+
+              const tradeOffDiff = (() => {
+                if (!origTradeOff || !altTradeOff) return null;
+                const newGains = altTradeOff.gains
+                  .filter((g) => !origTradeOff.gains.some((og) => og.label === g.label))
+                  .map((g) => g.label);
+                const lostNow = altTradeOff.losses
+                  .filter((l) => !origTradeOff.losses.some((ol) => ol.label === l.label))
+                  .map((l) => l.label);
+                const newRegret = altTradeOff.regrets
+                  .filter((r) => !origTradeOff.regrets.some((or) => or === r))
+                  .slice(0, 1);
+                return { newGains, lostNow, newRegret, newFormula: altTradeOff.exchangeFormula, newHidden: altTradeOff.hiddenCost };
+              })();
+
               return (
                 <div
                   key={scenario.id}
@@ -267,7 +296,7 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
                     <div className="flex-1 min-w-0">
                       <h4 className="text-mist-700 text-sm font-medium mb-1">{scenario.description}</h4>
                       <p className="text-mist-400 text-xs mb-2">{scenario.divergePoint}</p>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <div className="flex items-center gap-1.5 text-xs">
                           <span className="text-mist-400">人格转向:</span>
                           <span className="text-ember font-mono">{scenario.diffSummary.archetypeShift}</span>
@@ -288,7 +317,43 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
                             ))}
                           </div>
                         )}
-                        <p className="text-mist-500 text-xs italic mt-1.5">💡 {scenario.diffSummary.keyDifference}</p>
+                        <p className="text-mist-500 text-xs italic">💡 {scenario.diffSummary.keyDifference}</p>
+
+                        {tradeOffDiff && (tradeOffDiff.newGains.length > 0 || tradeOffDiff.lostNow.length > 0) && (
+                          <div className="pt-2 mt-2 border-t border-mist-100 space-y-1.5">
+                            <div className="text-[10px] font-mono uppercase tracking-wider text-chronos mb-1">⇅ 代价维度变化（相对原始版本）</div>
+                            {tradeOffDiff.newGains.length > 0 && (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                <span className="text-[10px] font-mono text-emerald-500">＋新增所得：</span>
+                                {tradeOffDiff.newGains.slice(0, 2).map((g, i) => (
+                                  <span key={i} className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 text-[10px]">
+                                    {g}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {tradeOffDiff.lostNow.length > 0 && (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                <span className="text-[10px] font-mono text-red-500">－新添代价：</span>
+                                {tradeOffDiff.lostNow.slice(0, 2).map((l, i) => (
+                                  <span key={i} className="px-1.5 py-0.5 rounded bg-red-500/15 text-red-500 text-[10px]">
+                                    {l}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {tradeOffDiff.newRegret.length > 0 && (
+                              <p className="text-[11px] text-amber-500 italic leading-relaxed">
+                                ✗ 新遗憾：{tradeOffDiff.newRegret[0].length > 45 ? tradeOffDiff.newRegret[0].slice(0, 45) + '…' : tradeOffDiff.newRegret[0]}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {!tradeOffDiff && (
+                          <div className="pt-2 mt-2 border-t border-mist-100">
+                            <p className="text-[10px] text-mist-400 italic">（此版本生成于代价计算功能上线前，无法提供代价维度对比）</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {altSnap && (

@@ -41,6 +41,12 @@ export default function LifeTimelinePanel({ personality }: Props) {
 
   const timeline = personality.lifeTimeline;
   const activeStage = timeline.stages[activeAge];
+  const stageTradeOff = activeStage.stageTradeOff ?? {
+    gainedThisStage: ['该阶段账单未记录（旧版本兼容性）'],
+    lostThisStage: ['该阶段账单未记录（旧版本兼容性）'],
+    quietRegret: '此人生快照生成于代价计算功能上线前，阶段级账本不可用。请使用新版本重新推演获取。',
+    priceTag: '价签缺失：请基于当前版本重新推演，可查看完整年龄账单。'
+  };
   const trendConfig = emotionTrendConfig[activeStage.emotionalTrend];
   const milestoneConfig = milestoneTypeConfig[activeStage.milestone.type] || milestoneTypeConfig.turning_point;
 
@@ -248,7 +254,7 @@ export default function LifeTimelinePanel({ personality }: Props) {
                     <span>＋</span> {activeAge}岁·得到
                   </div>
                   <ul className="space-y-1.5">
-                    {activeStage.stageTradeOff.gainedThisStage.map((g: string, i: number) => (
+                    {stageTradeOff.gainedThisStage.map((g: string, i: number) => (
                       <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
                         <span className="text-emerald-500 mt-0.5 text-[10px]">▸</span>
                         <span>{g}</span>
@@ -264,7 +270,7 @@ export default function LifeTimelinePanel({ personality }: Props) {
                     <span>−</span> {activeAge}岁·失去
                   </div>
                   <ul className="space-y-1.5">
-                    {activeStage.stageTradeOff.lostThisStage.map((l: string, i: number) => (
+                    {stageTradeOff.lostThisStage.map((l: string, i: number) => (
                       <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
                         <span className="text-red-500 mt-0.5 text-[10px]">▸</span>
                         <span>{l}</span>
@@ -279,7 +285,7 @@ export default function LifeTimelinePanel({ personality }: Props) {
                   价签 · 这笔交易的记账方式
                 </div>
                 <p className="text-mist-300 text-[12px] leading-relaxed font-serif italic">
-                  {activeStage.stageTradeOff.priceTag}
+                  {stageTradeOff.priceTag}
                 </p>
               </div>
 
@@ -288,7 +294,7 @@ export default function LifeTimelinePanel({ personality }: Props) {
                   <span>✗</span> 深夜未说出口的 · 安静的遗憾
                 </div>
                 <p className="text-mist-500 text-[12px] leading-relaxed italic">
-                  {activeStage.stageTradeOff.quietRegret}
+                  {stageTradeOff.quietRegret}
                 </p>
               </div>
             </div>

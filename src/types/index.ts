@@ -158,7 +158,7 @@ export interface ParallelPersonality {
   divergenceEvent: DivergenceEvent;
   lifeTimeline: LifeTimeline;
   visualDocumentary: VisualDocumentary;
-  lifeTradeOff: LifeTradeOff;
+  lifeTradeOff?: LifeTradeOff;
 }
 
 export type AppStage = 'home' | 'simulating' | 'result' | 'memory';

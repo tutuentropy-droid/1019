@@ -122,12 +122,38 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (snap) {
       mem.currentSnapshotId = snapshotId;
       saveMemory(mem);
+      const personalitiesWithCompat = snap.personalities.map((p) => {
+        const compat = JSON.parse(JSON.stringify(p));
+        if (!compat.lifeTradeOff) {
+          compat.lifeTradeOff = {
+            gains: [],
+            losses: [],
+            regrets: ['该版本生成时未启用代价计算功能，无法回溯历史得失账本。'],
+            exchangeFormula: '（旧版本数据：无交换公式）',
+            hiddenCost: '该快照保存于较早版本系统，人生资产负债表功能尚未上线。请基于新版本重新推演可获取完整代价维度。'
+          };
+        }
+        if (compat.lifeTimeline && compat.lifeTimeline.stages) {
+          const ages = [20, 30, 40] as const;
+          for (const age of ages) {
+            if (compat.lifeTimeline.stages[age] && !compat.lifeTimeline.stages[age].stageTradeOff) {
+              compat.lifeTimeline.stages[age].stageTradeOff = {
+                gainedThisStage: ['该阶段账单未记录'],
+                lostThisStage: ['该阶段账单未记录'],
+                quietRegret: '（历史快照兼容性：此版本生成于代价计算功能上线前）',
+                priceTag: '价签缺失 — 请使用新版本重新推演可查看完整年龄账单'
+              };
+            }
+          }
+        }
+        return compat;
+      });
       set({
         memory: mem,
         memoryVersion: state.memoryVersion + 1,
         viewingSnapshotId: snapshotId,
         input: JSON.parse(JSON.stringify(snap.input)),
-        personalities: JSON.parse(JSON.stringify(snap.personalities)),
+        personalities: personalitiesWithCompat,
         selectedPersonalityId: snap.selectedPersonalityId,
         stage: 'result'
       });
