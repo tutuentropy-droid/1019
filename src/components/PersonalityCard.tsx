@@ -31,6 +31,29 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
     hiddenCost: '请使用新版本系统重新推演本次人格，可获取完整人生代价维度。'
   };
 
+  const externalPerspective = personality.externalPerspective ?? {
+    friend: {
+      perception: '该版本生成于外部视角功能上线前，暂无此维度数据。',
+      hiddenTruth: '请使用新版本系统重新推演本次人格，可获取他人眼中的你与真实的你的对比视角。',
+      biasDetail: '认知偏差功能需要新版本数据支持。'
+    },
+    partner: {
+      perception: '该版本生成于外部视角功能上线前，暂无此维度数据。',
+      hiddenTruth: '请使用新版本系统重新推演本次人格，可获取他人眼中的你与真实的你的对比视角。',
+      biasDetail: '认知偏差功能需要新版本数据支持。'
+    },
+    parent: {
+      perception: '该版本生成于外部视角功能上线前，暂无此维度数据。',
+      hiddenTruth: '请使用新版本系统重新推演本次人格，可获取他人眼中的你与真实的你的对比视角。',
+      biasDetail: '认知偏差功能需要新版本数据支持。'
+    },
+    stranger: {
+      perception: '该版本生成于外部视角功能上线前，暂无此维度数据。',
+      hiddenTruth: '请使用新版本系统重新推演本次人格，可获取他人眼中的你与真实的你的对比视角。',
+      biasDetail: '认知偏差功能需要新版本数据支持。'
+    }
+  };
+
   return (
     <div
       className={`glass-card overflow-hidden transition-all duration-500 cursor-pointer
@@ -192,6 +215,66 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
                     </li>
                   ))}
                 </ul>
+              </div>
+            </div>
+
+            <div className="relative pt-4">
+              <div className="divider-gradient mb-4" />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 -top-0.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium whitespace-nowrap"
+                style={{
+                  backgroundColor: personality.accentColor + '22',
+                  color: personality.accentColor
+                }}
+              >
+                · 外部视角 · 他人眼中的你 vs 真实的你 ·
+              </div>
+              <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { key: 'friend' as const, label: '朋友怎么看你', icon: '👥', color: '#3B82F6' },
+                  { key: 'partner' as const, label: '伴侣怎么看你', icon: '💞', color: '#EC4899' },
+                  { key: 'parent' as const, label: '父母怎么看你', icon: '👨‍👩‍👧', color: '#F59E0B' },
+                  { key: 'stranger' as const, label: '陌生人怎么看你', icon: '👤', color: '#8B5CF6' }
+                ].map((perspective) => {
+                  const data = externalPerspective[perspective.key];
+                  return (
+                    <div
+                      key={perspective.key}
+                      className="p-4 rounded-xl border-l-4"
+                      style={{ backgroundColor: perspective.color + '10', borderColor: perspective.color }}
+                    >
+                      <div
+                        className="text-xs font-mono uppercase tracking-wider mb-2.5 flex items-center gap-1.5"
+                        style={{ color: perspective.color }}
+                      >
+                        <span>{perspective.icon}</span>
+                        {perspective.label}
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-[10px] font-mono text-mist-400 uppercase tracking-wider mb-1">他们以为的你</div>
+                          <p className="text-mist-500 text-xs leading-relaxed">{data.perception}</p>
+                        </div>
+                        <div className="relative pl-3">
+                          <div className="absolute left-0 top-1 bottom-1 w-px" style={{ backgroundColor: perspective.color + '55' }} />
+                          <div className="text-[10px] font-mono uppercase tracking-wider mb-1" style={{ color: perspective.color }}>真实的你（别人没看到）</div>
+                          <p className="text-white text-xs leading-relaxed">{data.hiddenTruth}</p>
+                        </div>
+                        <div
+                          className="p-2 rounded-lg"
+                          style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)' }}
+                        >
+                          <div className="text-[10px] font-mono text-ember uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <span>⚠</span> 认知偏差
+                          </div>
+                          <p className="text-mist-500 text-[11px] leading-relaxed italic">
+                            {data.biasDetail}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

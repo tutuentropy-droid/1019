@@ -159,6 +159,7 @@ export interface ParallelPersonality {
   lifeTimeline: LifeTimeline;
   visualDocumentary: VisualDocumentary;
   lifeTradeOff?: LifeTradeOff;
+  externalPerspective: ExternalPerspective;
 }
 
 export type AppStage = 'home' | 'simulating' | 'result' | 'memory';
@@ -247,6 +248,19 @@ export interface LifeTimeline {
   preservationPoints: string[];
   poster: TimelinePoster;
   storyboard: StoryboardShot[];
+}
+
+export interface PerspectiveView {
+  perception: string;
+  hiddenTruth: string;
+  biasDetail: string;
+}
+
+export interface ExternalPerspective {
+  friend: PerspectiveView;
+  partner: PerspectiveView;
+  parent: PerspectiveView;
+  stranger: PerspectiveView;
 }
 
 export interface TradeOffItem {

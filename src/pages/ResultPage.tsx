@@ -528,6 +528,55 @@ export default function ResultPage() {
                       </ul>
                     </div>
                   </div>
+
+                  <div className="relative pt-3 mt-1">
+                    <div className="divider-gradient mb-3" />
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2 -top-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium whitespace-nowrap"
+                      style={{
+                        backgroundColor: selected.accentColor + '22',
+                        color: selected.accentColor
+                      }}
+                    >
+                      · 外部视角 ·
+                    </div>
+                    <div className="pt-3 space-y-2.5">
+                      {[
+                        { key: 'friend' as const, label: '朋友视角', icon: '👥', color: '#3B82F6' },
+                        { key: 'partner' as const, label: '伴侣视角', icon: '💞', color: '#EC4899' },
+                        { key: 'parent' as const, label: '父母视角', icon: '👨‍👩‍👧', color: '#F59E0B' },
+                        { key: 'stranger' as const, label: '陌生人视角', icon: '👤', color: '#8B5CF6' }
+                      ].map((p) => {
+                        const data = (selected.externalPerspective ?? {
+                          friend: { perception: '暂无数据', hiddenTruth: '请重新推演', biasDetail: '' },
+                          partner: { perception: '暂无数据', hiddenTruth: '请重新推演', biasDetail: '' },
+                          parent: { perception: '暂无数据', hiddenTruth: '请重新推演', biasDetail: '' },
+                          stranger: { perception: '暂无数据', hiddenTruth: '请重新推演', biasDetail: '' }
+                        })[p.key];
+                        return (
+                          <div
+                            key={p.key}
+                            className="p-3 rounded-lg border-l-3"
+                            style={{ backgroundColor: p.color + '0D', borderLeft: `2px solid ${p.color}55` }}
+                          >
+                            <div
+                              className="text-[10px] font-mono uppercase tracking-wider mb-1.5 flex items-center gap-1"
+                              style={{ color: p.color }}
+                            >
+                              <span>{p.icon}</span>
+                              {p.label}
+                            </div>
+                            <p className="text-mist-500 text-[11px] leading-relaxed">
+                              <span className="text-mist-400">误解：</span>{data.perception.slice(0, 50)}{data.perception.length > 50 ? '…' : ''}
+                            </p>
+                            <p className="text-white text-[11px] leading-relaxed mt-1">
+                              <span style={{ color: p.color }}>真相：</span>{data.hiddenTruth.slice(0, 50)}{data.hiddenTruth.length > 50 ? '…' : ''}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

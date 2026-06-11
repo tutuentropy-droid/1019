@@ -1,7 +1,7 @@
-import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent, LifeTimeline, AgeStage, VisualDocumentary, LifeTradeOff, StageTradeOff } from '@/types';
+import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent, LifeTimeline, AgeStage, VisualDocumentary, LifeTradeOff, StageTradeOff, ExternalPerspective } from '@/types';
 import type { DivergenceEventTemplate } from '@/data/personalityTemplates';
 import { familyTemplates, eraTemplates, educationTemplates, traumaTemplates, resourcesTemplates, FactorTemplate } from '@/data/factorTemplates';
-import { archetypeLibrary, seedKeywords, visualDocumentaryLibrary, tradeOffLibrary } from '@/data/personalityTemplates';
+import { archetypeLibrary, seedKeywords, visualDocumentaryLibrary, tradeOffLibrary, externalPerspectiveLibrary } from '@/data/personalityTemplates';
 import { causalChainTemplates } from '@/data/causalChainTemplates';
 import { timelineLibrary } from '@/data/timelineTemplates';
 
@@ -404,6 +404,44 @@ function buildStageTradeOff(
   return JSON.parse(JSON.stringify(selected));
 }
 
+function buildExternalPerspective(
+  seedArchetype: string,
+  index: number
+): ExternalPerspective {
+  const lib = externalPerspectiveLibrary[seedArchetype];
+  if (!lib) {
+    return {
+      friend: { perception: '', hiddenTruth: '', biasDetail: '' },
+      partner: { perception: '', hiddenTruth: '', biasDetail: '' },
+      parent: { perception: '', hiddenTruth: '', biasDetail: '' },
+      stranger: { perception: '', hiddenTruth: '', biasDetail: '' }
+    };
+  }
+
+  return {
+    friend: {
+      perception: lib.friend[index % lib.friend.length].perception,
+      hiddenTruth: lib.friend[index % lib.friend.length].hiddenTruth,
+      biasDetail: lib.friend[index % lib.friend.length].biasDetail
+    },
+    partner: {
+      perception: lib.partner[index % lib.partner.length].perception,
+      hiddenTruth: lib.partner[index % lib.partner.length].hiddenTruth,
+      biasDetail: lib.partner[index % lib.partner.length].biasDetail
+    },
+    parent: {
+      perception: lib.parent[index % lib.parent.length].perception,
+      hiddenTruth: lib.parent[index % lib.parent.length].hiddenTruth,
+      biasDetail: lib.parent[index % lib.parent.length].biasDetail
+    },
+    stranger: {
+      perception: lib.stranger[index % lib.stranger.length].perception,
+      hiddenTruth: lib.stranger[index % lib.stranger.length].hiddenTruth,
+      biasDetail: lib.stranger[index % lib.stranger.length].biasDetail
+    }
+  };
+}
+
 function buildPersonality(
   seedArchetype: string,
   factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate },
@@ -449,7 +487,8 @@ function buildPersonality(
     divergenceEvent: buildDivergenceEvent(archetype, index),
     lifeTimeline,
     visualDocumentary,
-    lifeTradeOff: buildLifeTradeOff(seedArchetype, index)
+    lifeTradeOff: buildLifeTradeOff(seedArchetype, index),
+    externalPerspective: buildExternalPerspective(seedArchetype, index)
   };
 }
 
