@@ -8,11 +8,20 @@ export interface FactorWeights {
   resources: number;
 }
 
+export interface EraCountryContext {
+  era: string;
+  country: string;
+  eraLabel: string;
+  countryLabel: string;
+  description: string;
+}
+
 export interface SimulationInput {
   mode: InputMode;
   content: string;
   personalityCount: 3 | 4 | 5;
   factorWeights: FactorWeights;
+  context?: EraCountryContext;
 }
 
 export interface UserChoice {

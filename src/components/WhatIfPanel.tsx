@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import type { FactorWeights, SimulationInput, BigFive } from '@/types';
 import { GitFork, Sparkles, Eye, Play } from 'lucide-react';
+import { contextTemplates } from '@/data/contextTemplates';
 
 const FACTOR_CONFIG: { key: keyof FactorWeights; label: string; color: string }[] = [
   { key: 'family', label: '家庭环境', color: '#5B3FD9' },
@@ -10,6 +11,21 @@ const FACTOR_CONFIG: { key: keyof FactorWeights; label: string; color: string }[
   { key: 'trauma', label: '创伤事件', color: '#EF4444' },
   { key: 'resources', label: '资源禀赋', color: '#22D3EE' }
 ];
+
+const ERA_COUNTRY_SCENARIOS = contextTemplates.map((ctx) => ({
+  label: `🌍 如果生在${ctx.eraLabel}${ctx.countryLabel}`,
+  description: ctx.description.slice(0, 50) + (ctx.description.length > 50 ? '…' : ''),
+  modify: (input: SimulationInput): Partial<SimulationInput> => ({
+    context: {
+      era: ctx.era,
+      country: ctx.country,
+      eraLabel: ctx.eraLabel,
+      countryLabel: ctx.countryLabel,
+      description: ctx.description
+    },
+    factorWeights: { ...input.factorWeights, era: Math.min(100, input.factorWeights.era + 20) }
+  })
+}));
 
 const PRESET_SCENARIOS: { label: string; description: string; modify: (input: SimulationInput) => Partial<SimulationInput> }[] = [
   {
@@ -46,7 +62,8 @@ const PRESET_SCENARIOS: { label: string; description: string; modify: (input: Si
     modify: (input) => ({
       factorWeights: { ...input.factorWeights, resources: Math.min(100, input.factorWeights.resources + 35) }
     })
-  }
+  },
+  ...ERA_COUNTRY_SCENARIOS
 ];
 
 const BIG_FIVE_LABELS: Record<keyof BigFive, string> = {
@@ -199,6 +216,13 @@ export default function WhatIfPanel({ snapshotId, onScenarioGenerated }: Props) 
                         </span>
                       );
                     })}
+                    {preset.modify(baseSnap.input).context && (
+                      <span
+                        className="px-2 py-0.5 rounded text-[10px] font-mono bg-chronos/20 text-chronos"
+                      >
+                        📍 {preset.modify(baseSnap.input).context?.eraLabel}{preset.modify(baseSnap.input).context?.countryLabel}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <button

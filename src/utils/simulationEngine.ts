@@ -1,9 +1,10 @@
-import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent, LifeTimeline, AgeStage, VisualDocumentary, LifeTradeOff, StageTradeOff, ExternalPerspective } from '@/types';
+import type { SimulationInput, ParallelPersonality, BigFive, CausalEvent, FactorWeights, ProfileCard, DivergenceEvent, LifeTimeline, AgeStage, AgeStageState, VisualDocumentary, LifeTradeOff, StageTradeOff, ExternalPerspective } from '@/types';
 import type { DivergenceEventTemplate } from '@/data/personalityTemplates';
 import { familyTemplates, eraTemplates, educationTemplates, traumaTemplates, resourcesTemplates, FactorTemplate } from '@/data/factorTemplates';
 import { archetypeLibrary, seedKeywords, visualDocumentaryLibrary, tradeOffLibrary, externalPerspectiveLibrary } from '@/data/personalityTemplates';
 import { causalChainTemplates } from '@/data/causalChainTemplates';
 import { timelineLibrary } from '@/data/timelineTemplates';
+import { getContextById, type ContextTemplate } from '@/data/contextTemplates';
 
 const clamp = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n));
 const random = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -65,7 +66,8 @@ function computeBaseBigFive(seedArchetype: string): BigFive {
 
 function applyFactorModifiers(
   base: BigFive,
-  factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate }
+  factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate },
+  context?: ContextTemplate
 ): BigFive {
   const result = { ...base };
   const all = [factors.family, factors.era, factors.education, factors.trauma, factors.resources];
@@ -73,7 +75,15 @@ function applyFactorModifiers(
     const mod = factor.bigFiveModifier;
     for (const [key, value] of Object.entries(mod)) {
       if (value && key in result) {
-        (result as any)[key] += value + (Math.random() * 10 - 5);
+        result[key as keyof BigFive] += value + (Math.random() * 10 - 5);
+      }
+    }
+  }
+  if (context) {
+    const contextMod = context.bigFiveModifier;
+    for (const [key, value] of Object.entries(contextMod)) {
+      if (value && key in result) {
+        result[key as keyof BigFive] += value * 0.7 + (Math.random() * 6 - 3);
       }
     }
   }
@@ -88,7 +98,8 @@ function applyFactorModifiers(
 
 function generateCausalChain(
   factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate },
-  _bigFive: BigFive
+  _bigFive: BigFive,
+  context?: ContextTemplate
 ): CausalEvent[] {
   const chain: CausalEvent[] = [];
   const factorMap: Record<string, FactorTemplate> = {
@@ -104,11 +115,28 @@ function generateCausalChain(
     const eventBase = random(template.events);
     const impactBase = random(template.impacts);
     const age = template.ageRange[0] + Math.floor(Math.random() * (template.ageRange[1] - template.ageRange[0] + 1));
+    const contextPrefix = context ? `${context.eraLabel}${context.countryLabel} · ` : '';
     chain.push({
       age,
-      event: `${factor.label}背景下：${eventBase}`,
+      event: `${contextPrefix}${factor.label}背景下：${eventBase}`,
       impact: impactBase
     });
+  }
+
+  if (context) {
+    const contextEvents: CausalEvent[] = [
+      {
+        age: 18,
+        event: `${context.eraLabel}${context.countryLabel}：${context.opportunityStructure.mobility}`,
+        impact: `时代的机会结构塑造了我对"可能性"的认知——${context.valueSystem.successDefinition}是那个时代大多数人的答案`
+      },
+      {
+        age: 25,
+        event: `在「${context.expressionStyle.socialNorms}」的社会规范下，我学会了${context.expressionStyle.communication.slice(0, 20)}`,
+        impact: `这影响了我后来的人际关系和职业选择，也塑造了我的${context.valueSystem.prioritized[0]}价值观`
+      }
+    ];
+    chain.push(...contextEvents);
   }
 
   return chain.sort((a, b) => a.age - b.age);
@@ -116,16 +144,37 @@ function generateCausalChain(
 
 function buildProfile(
   archetype: typeof archetypeLibrary[keyof typeof archetypeLibrary],
-  index: number
+  index: number,
+  context?: ContextTemplate
 ): ProfileCard {
+  const baseBackground = archetype.backgrounds[index % archetype.backgrounds.length];
+  const baseWorkStyle = archetype.workStyles[index % archetype.workStyles.length];
+  const baseConsumption = archetype.consumptionViews[index % archetype.consumptionViews.length];
+
+  if (!context) {
+    return {
+      background: baseBackground,
+      coreMotivation: archetype.coreMotivations[index % archetype.coreMotivations.length],
+      greatestFear: archetype.greatestFears[index % archetype.greatestFears.length],
+      dailyPattern: archetype.dailyPatterns[index % archetype.dailyPatterns.length],
+      loveView: archetype.loveViews[index % archetype.loveViews.length],
+      consumptionView: baseConsumption,
+      workStyle: baseWorkStyle
+    };
+  }
+
+  const contextOpportunity = random(context.opportunityStructure.available);
+  const contextValue = random(context.valueSystem.prioritized);
+  const contextNorm = context.expressionStyle.socialNorms;
+
   return {
-    background: archetype.backgrounds[index % archetype.backgrounds.length],
-    coreMotivation: archetype.coreMotivations[index % archetype.coreMotivations.length],
-    greatestFear: archetype.greatestFears[index % archetype.greatestFears.length],
-    dailyPattern: archetype.dailyPatterns[index % archetype.dailyPatterns.length],
-    loveView: archetype.loveViews[index % archetype.loveViews.length],
-    consumptionView: archetype.consumptionViews[index % archetype.consumptionViews.length],
-    workStyle: archetype.workStyles[index % archetype.workStyles.length]
+    background: `${context.eraLabel}${context.countryLabel} · ${contextOpportunity}浪潮中，${baseBackground}`,
+    coreMotivation: `在「${contextValue}」的时代价值观下，${archetype.coreMotivations[index % archetype.coreMotivations.length]}`,
+    greatestFear: `时代的恐惧是「${random(context.valueSystem.stigmatized)}」，而我最深的恐惧是${archetype.greatestFears[index % archetype.greatestFears.length]}`,
+    dailyPattern: `${contextNorm}。${archetype.dailyPatterns[index % archetype.dailyPatterns.length]}`,
+    loveView: `${context.expressionStyle.emotionalDisplay}。${archetype.loveViews[index % archetype.loveViews.length]}`,
+    consumptionView: `在${context.eraLabel}的消费文化中，${baseConsumption}`,
+    workStyle: `${context.expressionStyle.communication.slice(0, 25)}。${baseWorkStyle}`
   };
 }
 
@@ -148,30 +197,47 @@ function buildLifeTimeline(
   personalityId: string,
   index: number,
   codeName: string,
-  accentColor: string
+  accentColor: string,
+  context?: ContextTemplate
 ): LifeTimeline {
   const template = timelineLibrary[seedArchetype];
   if (!template) {
-    const fallbackTemplate = timelineLibrary['the-guardian'];
-    return buildLifeTimeline('the-guardian', personalityId, index, codeName, accentColor);
+    return buildLifeTimeline('the-guardian', personalityId, index, codeName, accentColor, context);
   }
 
   const poster = template.posters[index % template.posters.length];
   const erosionTrajectory = template.erosionTrajectories[index % template.erosionTrajectories.length];
   const storyboard = template.storyboards[index % template.storyboards.length];
 
-  const stagesWithFactors = {} as Record<AgeStage, any>;
+  const stagesWithFactors = {} as Record<AgeStage, AgeStageState>;
   const ages: AgeStage[] = [20, 30, 40];
-  
+
   for (const age of ages) {
     const stage = template.stages[age];
+    let occupation = stage.occupation;
+    let dailyLife = stage.dailyLife;
+    let worldView = stage.worldView;
+
+    if (context) {
+      const availableJobs = context.opportunityStructure.available;
+      const contextJob = availableJobs[index % availableJobs.length];
+      occupation = `${context.eraLabel}${context.countryLabel} · ${contextJob} · ${occupation}`;
+
+      const contextValue = context.valueSystem.prioritized[index % context.valueSystem.prioritized.length];
+      dailyLife = `${context.expressionStyle.socialNorms}。${dailyLife}`;
+      worldView = `在「${contextValue}」的时代氛围中，${worldView}`;
+    }
+
     stagesWithFactors[age] = {
       ...stage,
-      occupation: stage.occupation,
-      dailyLife: stage.dailyLife,
+      occupation,
+      dailyLife,
+      worldView,
       stageTradeOff: buildStageTradeOff(seedArchetype, age, index)
     };
   }
+
+  const contextSubtitle = context ? `「${codeName}」${context.eraLabel}${context.countryLabel} · 20→30→40` : `「${codeName}」世界线 · 20→30→40`;
 
   return {
     id: `tl-${Date.now()}-${index}`,
@@ -182,7 +248,7 @@ function buildLifeTimeline(
     preservationPoints: template.preservationPoints,
     poster: {
       ...poster,
-      subtitle: `「${codeName}」世界线 · 20→30→40`
+      subtitle: contextSubtitle
     },
     storyboard
   };
@@ -446,21 +512,65 @@ function buildPersonality(
   seedArchetype: string,
   factors: { family: FactorTemplate; era: FactorTemplate; education: FactorTemplate; trauma: FactorTemplate; resources: FactorTemplate },
   index: number,
-  total: number
+  total: number,
+  context?: ContextTemplate
 ): ParallelPersonality {
   const archetype = archetypeLibrary[seedArchetype];
-  const bigFive = applyFactorModifiers(computeBaseBigFive(seedArchetype), factors);
-  const causalChain = generateCausalChain(factors, bigFive);
+  const bigFive = applyFactorModifiers(computeBaseBigFive(seedArchetype), factors, context);
+  const causalChain = generateCausalChain(factors, bigFive, context);
 
   const codeName = archetype.codeNames[index % archetype.codeNames.length];
   const tagline = archetype.taglines[index % archetype.taglines.length];
   const personality = archetype.personalities[index % archetype.personalities.length];
   const accentColor = archetype.accentColors[index % archetype.accentColors.length];
 
-  const factorContext = `在「${factors.family.label}」「${factors.era.label}」「${factors.education.label}」「${factors.trauma.label}」「${factors.resources.label}」的多重作用下——`;
+  let factorContext = `在「${factors.family.label}」「${factors.era.label}」「${factors.education.label}」「${factors.trauma.label}」「${factors.resources.label}」的多重作用下——`;
+  let contextValues = [...archetype.values];
+  let contextLifeChoices = [...archetype.lifeChoices];
+  let contextCatchphrases = [...archetype.catchphrases];
+  let contextContradictions = [...archetype.contradictions];
+
+  if (context) {
+    const contextLabel = `${context.eraLabel}${context.countryLabel}`;
+    factorContext = `【${contextLabel}】${context.description}\n\n` + factorContext;
+
+    const eraValues = context.valueSystem.prioritized.map(
+      (v) => `${v}（${contextLabel}时代主流价值观）`
+    );
+    const eraChoices = context.opportunityStructure.available.map(
+      (c) => `选择${c}（${contextLabel}的时代机会）`
+    );
+    const eraAvoidances = context.valueSystem.stigmatized.map(
+      (s) => `刻意避免${s}（${contextLabel}的社会禁忌）`
+    );
+
+    contextValues = [
+      ...eraValues.slice(0, 2),
+      ...randomN(archetype.values, 2)
+    ];
+    contextLifeChoices = [
+      ...eraChoices.slice(0, 1),
+      ...eraAvoidances.slice(0, 1),
+      ...randomN(archetype.lifeChoices, 2)
+    ];
+    contextContradictions = [
+      `内心认同${archetype.values[0]}，但时代要求${context.valueSystem.prioritized[0]}`,
+      `个人特质是${archetype.personalities[0].slice(0, 15)}，但时代鼓励${context.expressionStyle.communication.slice(0, 15)}`,
+      ...randomN(archetype.contradictions, 1)
+    ];
+
+    const communicationStyle = context.expressionStyle.communication;
+    if (communicationStyle.includes('含蓄')) {
+      contextCatchphrases = contextCatchphrases.map((p) => p.replace(/！/g, '。').replace(/我要/g, '或许可以'));
+    } else if (communicationStyle.includes('直接')) {
+      contextCatchphrases = contextCatchphrases.map((p) => p.replace(/。$/g, '！').replace(/或许/g, '当然'));
+    } else if (communicationStyle.includes('克制')) {
+      contextCatchphrases = contextCatchphrases.map((p) => p.replace(/太/g, '稍微').replace(/必须/g, '可以'));
+    }
+  }
 
   const id = `p-${Date.now()}-${index}`;
-  const lifeTimeline = buildLifeTimeline(seedArchetype, id, index, codeName, accentColor);
+  const lifeTimeline = buildLifeTimeline(seedArchetype, id, index, codeName, accentColor, context);
   const visualDocumentary = buildVisualDocumentary(seedArchetype, index);
 
   return {
@@ -470,20 +580,20 @@ function buildPersonality(
     accentColor,
     tagline,
     personality: factorContext + personality,
-    catchphrase: randomN(archetype.catchphrases, 3),
-    values: randomN(archetype.values, 4),
-    lifeChoices: randomN(archetype.lifeChoices, 4),
-    contradictions: randomN(archetype.contradictions, 3),
+    catchphrase: randomN(contextCatchphrases, 3),
+    values: contextValues,
+    lifeChoices: contextLifeChoices,
+    contradictions: contextContradictions,
     bigFive,
     causalChain,
     factors: {
       family: factors.family.label,
-      era: factors.era.label,
+      era: context ? `${context.eraLabel}${context.countryLabel} · ${context.eraFactor.label}` : factors.era.label,
       education: factors.education.label,
       trauma: factors.trauma.label,
       resources: factors.resources.label
     },
-    profile: buildProfile(archetype, index),
+    profile: buildProfile(archetype, index, context),
     divergenceEvent: buildDivergenceEvent(archetype, index),
     lifeTimeline,
     visualDocumentary,
@@ -503,9 +613,14 @@ export function runSimulation(input: SimulationInput): ParallelPersonality[] {
 
   const archetypeList = Array.from(selectedArchetypes);
 
+  let context: ContextTemplate | undefined;
+  if (input.context) {
+    context = getContextById(`${input.context.country}-${input.context.era}`);
+  }
+
   return archetypeList.map((archetype, i) => {
     const factors = sampleFactors(input.factorWeights);
-    return buildPersonality(archetype, factors, i, input.personalityCount);
+    return buildPersonality(archetype, factors, i, input.personalityCount, context);
   });
 }
 

@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Sparkles, MessageSquare, BookOpen, UserCircle2, ArrowRight, Wand2, TreeDeciduous, Brain, Clock, GitFork } from 'lucide-react';
+import { Sparkles, MessageSquare, BookOpen, UserCircle2, ArrowRight, Wand2, TreeDeciduous, Brain, Clock, GitFork, Globe2, Calendar } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { exampleInputs } from '@/utils/simulationEngine';
 import type { InputMode, FactorWeights } from '@/types';
 import SnapshotHistory from '@/components/SnapshotHistory';
+import { contextTemplates } from '@/data/contextTemplates';
 
 const MODES: { key: InputMode; label: string; icon: typeof MessageSquare; hint: string }[] = [
   { key: 'sentence', label: '一句话', icon: MessageSquare, hint: '如"我总觉得和这个世界格格不入"' },
@@ -120,6 +121,66 @@ export default function Home() {
                   <span className="text-xs text-mist-400 italic px-3 py-1.5">
                     试试：{MODES.find((m) => m.key === hoveredExample)?.hint}
                   </span>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-baseline justify-between mb-4">
+                  <h3 className="text-white font-serif text-base font-medium flex items-center gap-2">
+                    <Globe2 size={16} className="text-chronos" />
+                    时代与国家背景
+                  </h3>
+                  <span className="text-xs text-mist-400">选择平行宇宙的时空坐标</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto pr-1">
+                  <button
+                    onClick={() => updateInput({ context: undefined })}
+                    className={`p-3 rounded-xl text-left transition-all duration-300 border
+                      ${!input.context
+                        ? 'bg-gradient-to-br from-nebula/30 to-chronos/20 text-white border-nebula/40'
+                        : 'bg-mist-50 text-mist-400 border-mist-100 hover:text-mist-600 hover:bg-mist-100'
+                      }`}
+                  >
+                    <div className="font-medium text-sm">🌌 不指定（随机推演）</div>
+                    <div className="text-xs opacity-70 mt-0.5">让系统自由组合各种时空背景</div>
+                  </button>
+                  {contextTemplates.map((ctx) => (
+                    <button
+                      key={ctx.id}
+                      onClick={() =>
+                        updateInput({
+                          context: {
+                            era: ctx.era,
+                            country: ctx.country,
+                            eraLabel: ctx.eraLabel,
+                            countryLabel: ctx.countryLabel,
+                            description: ctx.description
+                          }
+                        })
+                      }
+                      className={`p-3 rounded-xl text-left transition-all duration-300 border
+                        ${input.context?.era === ctx.era && input.context?.country === ctx.country
+                          ? 'bg-gradient-to-br from-nebula/30 to-chronos/20 text-white border-nebula/40'
+                          : 'bg-mist-50 text-mist-400 border-mist-100 hover:text-mist-600 hover:bg-mist-100'
+                        }`}
+                    >
+                      <div className="font-medium text-sm flex items-center gap-1.5">
+                        <Calendar size={12} />
+                        {ctx.eraLabel} · {ctx.countryLabel}
+                      </div>
+                      <div className="text-xs opacity-70 mt-0.5 line-clamp-2">{ctx.description}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {input.context && (
+                  <div className="p-3 rounded-xl bg-chronos/10 border border-chronos/20 mb-4">
+                    <div className="text-xs text-chronos font-medium mb-1">💡 当前时空坐标</div>
+                    <div className="text-sm text-mist-600">
+                      {input.context.eraLabel}{input.context.countryLabel} — {input.context.description}
+                    </div>
+                  </div>
                 )}
               </div>
 
