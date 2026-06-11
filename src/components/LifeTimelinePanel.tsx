@@ -227,6 +227,73 @@ export default function LifeTimelinePanel({ personality }: Props) {
             </div>
           </div>
 
+          <div className="relative pt-3">
+            <div className="divider-gradient mb-4" />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 -top-0.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium"
+              style={{
+                backgroundColor: '#F59E0B' + '22',
+                color: '#F59E0B'
+              }}
+            >
+              · {activeAge}岁账单 · 这一年交换了什么 ·
+            </div>
+            <div className="pt-4 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  className="p-3 rounded-xl border-l-4"
+                  style={{ backgroundColor: '#10B981' + '10', borderColor: '#10B981' }}
+                >
+                  <div className="text-[10px] font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#10B981' }}>
+                    <span>＋</span> {activeAge}岁·得到
+                  </div>
+                  <ul className="space-y-1.5">
+                    {activeStage.stageTradeOff.gainedThisStage.map((g: string, i: number) => (
+                      <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
+                        <span className="text-emerald-500 mt-0.5 text-[10px]">▸</span>
+                        <span>{g}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div
+                  className="p-3 rounded-xl border-l-4"
+                  style={{ backgroundColor: '#EF4444' + '10', borderColor: '#EF4444' }}
+                >
+                  <div className="text-[10px] font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#EF4444' }}>
+                    <span>−</span> {activeAge}岁·失去
+                  </div>
+                  <ul className="space-y-1.5">
+                    {activeStage.stageTradeOff.lostThisStage.map((l: string, i: number) => (
+                      <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
+                        <span className="text-red-500 mt-0.5 text-[10px]">▸</span>
+                        <span>{l}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl" style={{ backgroundColor: personality.accentColor + '12', borderLeft: `3px solid ${personality.accentColor}` }}>
+                <div className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: personality.accentColor }}>
+                  价签 · 这笔交易的记账方式
+                </div>
+                <p className="text-mist-300 text-[12px] leading-relaxed font-serif italic">
+                  {activeStage.stageTradeOff.priceTag}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-500/8 to-orange-500/8 border border-amber-500/20">
+                <div className="text-[10px] font-mono uppercase tracking-wider mb-1.5 text-amber-500 flex items-center gap-1.5">
+                  <span>✗</span> 深夜未说出口的 · 安静的遗憾
+                </div>
+                <p className="text-mist-500 text-[12px] leading-relaxed italic">
+                  {activeStage.stageTradeOff.quietRegret}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             {[
               { key: 'values', label: '核心价值观', icon: Brain, data: activeStage.values.map((v: string) => v), list: true },

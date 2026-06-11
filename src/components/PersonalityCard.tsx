@@ -187,6 +187,115 @@ export default function PersonalityCard({ personality, index, expanded, onToggle
               </div>
             </div>
 
+            <div className="relative pt-4">
+              <div className="divider-gradient mb-5" />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 -top-0.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium"
+                style={{
+                  backgroundColor: '#EF4444' + '22',
+                  color: '#EF4444'
+                }}
+              >
+                · 得失账本 · 人生资源交换清单 ·
+              </div>
+              <div className="pt-5 space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div
+                    className="p-4 rounded-xl border-l-4"
+                    style={{ backgroundColor: '#10B981' + '10', borderColor: '#10B981' }}
+                  >
+                    <div className="text-xs font-mono uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: '#10B981' }}>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#10B981' }} />
+                      ✦ 得到了什么（贷方）
+                    </div>
+                    <ul className="space-y-3">
+                      {personality.lifeTradeOff.gains.map((g, i) => (
+                        <li key={i} className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="inline-block px-2 py-0.5 rounded text-[10px] font-mono"
+                              style={{
+                                backgroundColor: g.weight === 'heavy' ? '#10B98133' : g.weight === 'medium' ? '#10B98122' : '#10B98111',
+                                color: '#10B981'
+                              }}
+                            >
+                              {g.weight === 'heavy' ? '重量级' : g.weight === 'medium' ? '中量级' : '轻量级'}
+                            </span>
+                            <span className="text-white text-sm font-medium">{g.label}</span>
+                          </div>
+                          <p className="text-mist-500 text-xs leading-relaxed pl-1">{g.description}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div
+                    className="p-4 rounded-xl border-l-4"
+                    style={{ backgroundColor: '#EF4444' + '10', borderColor: '#EF4444' }}
+                  >
+                    <div className="text-xs font-mono uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: '#EF4444' }}>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+                      ✦ 失去了什么（借方）
+                    </div>
+                    <ul className="space-y-3">
+                      {personality.lifeTradeOff.losses.map((l, i) => (
+                        <li key={i} className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="inline-block px-2 py-0.5 rounded text-[10px] font-mono"
+                              style={{
+                                backgroundColor: l.weight === 'heavy' ? '#EF444433' : l.weight === 'medium' ? '#EF444422' : '#EF444411',
+                                color: '#EF4444'
+                              }}
+                            >
+                              {l.weight === 'heavy' ? '重量级' : l.weight === 'medium' ? '中量级' : '轻量级'}
+                            </span>
+                            <span className="text-white text-sm font-medium">{l.label}</span>
+                          </div>
+                          <p className="text-mist-500 text-xs leading-relaxed pl-1">{l.description}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div
+                  className="p-4 rounded-xl"
+                  style={{ backgroundColor: personality.accentColor + '10', borderLeft: `3px solid ${personality.accentColor}` }}
+                >
+                  <div className="text-xs font-mono uppercase tracking-wider mb-2" style={{ color: personality.accentColor }}>
+                    ∑ 交换公式
+                  </div>
+                  <p className="text-mist-200 text-sm font-serif italic leading-relaxed">
+                    {personality.lifeTradeOff.exchangeFormula}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-l-4 border-amber-500">
+                  <div className="text-xs font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5 text-amber-500">
+                    <span>⚠</span>
+                    隐性成本（对账单上看不到的那一行）
+                  </div>
+                  <p className="text-mist-400 text-sm leading-relaxed">
+                    {personality.lifeTradeOff.hiddenCost}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-mist-50/50">
+                  <div className="text-xs font-mono text-nebula uppercase tracking-wider mb-3">
+                    ✦ 未完成事项清单 · 那些这辈子都会欠着的遗憾
+                  </div>
+                  <ul className="space-y-2.5">
+                    {personality.lifeTradeOff.regrets.map((r, i) => (
+                      <li key={i} className="text-mist-600 text-sm flex items-start gap-2.5">
+                        <span className="text-amber-500 mt-0.5 flex-shrink-0">✗</span>
+                        <span className="italic leading-relaxed">{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             <div className="relative pt-3">
               <div className="divider-gradient mb-4" />
               <div

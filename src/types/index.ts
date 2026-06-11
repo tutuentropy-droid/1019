@@ -158,6 +158,7 @@ export interface ParallelPersonality {
   divergenceEvent: DivergenceEvent;
   lifeTimeline: LifeTimeline;
   visualDocumentary: VisualDocumentary;
+  lifeTradeOff: LifeTradeOff;
 }
 
 export type AppStage = 'home' | 'simulating' | 'result' | 'memory';
@@ -217,6 +218,7 @@ export interface AgeStageState {
   dailyLife: string;
   innerConflict: string;
   worldView: string;
+  stageTradeOff?: StageTradeOff;
 }
 
 export interface TimelineVisual {
@@ -245,6 +247,27 @@ export interface LifeTimeline {
   preservationPoints: string[];
   poster: TimelinePoster;
   storyboard: StoryboardShot[];
+}
+
+export interface TradeOffItem {
+  label: string;
+  description: string;
+  weight: 'light' | 'medium' | 'heavy';
+}
+
+export interface LifeTradeOff {
+  gains: TradeOffItem[];
+  losses: TradeOffItem[];
+  regrets: string[];
+  exchangeFormula: string;
+  hiddenCost: string;
+}
+
+export interface StageTradeOff {
+  gainedThisStage: string[];
+  lostThisStage: string[];
+  quietRegret: string;
+  priceTag: string;
 }
 
 export interface TimelinePoster {
