@@ -7,7 +7,7 @@ interface Props {
   personality: ParallelPersonality;
 }
 
-const AGES: AgeStage[] = [20, 30, 40];
+const AGES: AgeStage[] = [20, 30, 40, 60];
 
 const emotionTrendConfig: Record<EmotionTrend, { label: string; color: string; icon: string }> = {
   rising: { label: '上升期', color: '#10B981', icon: '↑' },
@@ -24,8 +24,14 @@ const milestoneTypeConfig: Record<string, { label: string; color: string }> = {
   awakening: { label: '觉醒时刻', color: '#F59E0B' }
 };
 
+function getInitialAge(timeline: ParallelPersonality['lifeTimeline']): AgeStage {
+  const available = AGES.filter((age) => !!timeline.stages[age]);
+  return available.includes(20) ? 20 : (available[0] ?? 20);
+}
+
 export default function LifeTimelinePanel({ personality }: Props) {
-  const [activeAge, setActiveAge] = useState<AgeStage>(20);
+  const timeline = personality.lifeTimeline;
+  const [activeAge, setActiveAge] = useState<AgeStage>(() => getInitialAge(timeline));
   const [showPoster, setShowPoster] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     monologue: true,
@@ -39,8 +45,20 @@ export default function LifeTimelinePanel({ personality }: Props) {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const timeline = personality.lifeTimeline;
-  const activeStage = timeline.stages[activeAge];
+  const activeStage = timeline.stages[activeAge] ?? {
+    selfIdentity: '',
+    occupation: '',
+    livingSituation: '',
+    emotionalState: '',
+    emotionalTrend: 'stable' as EmotionTrend,
+    keyQuote: '',
+    monologue: '',
+    values: [],
+    milestone: { title: '', description: '', impact: '', type: 'turning_point' as const },
+    dailyLife: '',
+    innerConflict: '',
+    worldView: ''
+  };
   const stageTradeOff = activeStage.stageTradeOff ?? {
     gainedThisStage: ['该阶段账单未记录（旧版本兼容性）'],
     lostThisStage: ['该阶段账单未记录（旧版本兼容性）'],
@@ -83,7 +101,7 @@ export default function LifeTimelinePanel({ personality }: Props) {
         <div className="relative mb-8">
           <div className="absolute left-0 right-0 top-1/2 h-1 rounded-full" style={{ background: `linear-gradient(90deg, ${personality.accentColor}33, ${personality.accentColor}, ${personality.accentColor}33)` }} />
           <div className="relative flex justify-between">
-            {AGES.map((age) => {
+            {AGES.filter((age) => !!timeline.stages[age]).map((age) => {
               const isActive = activeAge === age;
               const stage = timeline.stages[age];
               const trend = emotionTrendConfig[stage.emotionalTrend];
@@ -480,6 +498,245 @@ export default function LifeTimelinePanel({ personality }: Props) {
           ))}
         </div>
       </div>
+
+      {timeline.elderlyRetrospective && (
+        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="relative mb-6">
+            <div className="absolute inset-0 rounded-2xl opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 3px)' }} />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">📖</span>
+                  <h3 className="text-white font-serif text-xl">
+                    · 60岁的自我回望 ·
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono text-mist-400 uppercase tracking-wider">
+                  平行人生相册 · 最后一页
+                </span>
+              </div>
+              <div className="text-mist-400 text-xs font-serif italic mb-6 pl-2 border-l-2" style={{ borderColor: personality.accentColor + '66' }}>
+                「翻到这一页的时候，你才会突然意识到——今天的每一个选择，
+                都在悄悄塑造着，四十年后那个坐在摇椅上回忆的自己。」
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="relative p-6 rounded-2xl mb-6 overflow-hidden"
+            style={{
+              background: `linear-gradient(135deg, ${personality.accentColor}15 0%, #0f172a 50%, ${personality.accentColor}08 100%)`,
+              border: `1px solid ${personality.accentColor}33`
+            }}
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-3xl" style={{ backgroundColor: personality.accentColor }} />
+            <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-10 blur-2xl" style={{ backgroundColor: personality.accentColor }} />
+
+            <div className="relative">
+              <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: personality.accentColor }}>
+                · 60岁 · 对20岁的自己说 ·
+              </div>
+              <div
+                className="p-5 rounded-xl mb-5 relative"
+                style={{
+                  backgroundColor: '#020617',
+                  borderLeft: `3px solid ${personality.accentColor}`
+                }}
+              >
+                <div className="text-3xl mb-2 opacity-30 font-serif" style={{ color: personality.accentColor }}>"</div>
+                <p className="text-white/95 font-serif italic text-lg leading-relaxed">
+                  {timeline.elderlyRetrospective.messageToYoungerSelf}
+                </p>
+                <div className="mt-4 text-right">
+                  <span className="text-sm font-serif" style={{ color: personality.accentColor }}>
+                    —— 60岁的「{personality.codeName}」
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div
+                  className="p-4 rounded-xl"
+                  style={{ backgroundColor: '#EF4444' + '10', borderLeft: '3px solid #EF4444' }}
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#EF4444' }}>
+                      ✗ 一生最大的遗憾
+                    </span>
+                  </div>
+                  <p className="text-mist-400 text-xs leading-relaxed italic">
+                    {timeline.elderlyRetrospective.greatestRegret}
+                  </p>
+                </div>
+                <div
+                  className="p-4 rounded-xl"
+                  style={{ backgroundColor: '#10B981' + '10', borderLeft: '3px solid #10B981' }}
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#10B981' }}>
+                      ✓ 一生最大的满足
+                    </span>
+                  </div>
+                  <p className="text-mist-400 text-xs leading-relaxed italic">
+                    {timeline.elderlyRetrospective.greatestSatisfaction}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className="p-4 rounded-xl mb-4"
+                style={{
+                  backgroundColor: personality.accentColor + '08',
+                  border: `1px dashed ${personality.accentColor}33`
+                }}
+              >
+                <div className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: personality.accentColor }}>
+                  · 60岁的自我画像 ·
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-mist-500 text-xs font-mono mt-0.5">WHO</span>
+                    <p className="text-white/80 text-sm font-serif">{timeline.elderlyRetrospective.selfIdentity}</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-mist-500 text-xs font-mono mt-0.5">LIVE</span>
+                    <p className="text-mist-400 text-xs leading-relaxed">{timeline.elderlyRetrospective.livingSituation}</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-mist-500 text-xs font-mono mt-0.5">DAILY</span>
+                    <p className="text-mist-400 text-xs leading-relaxed">{timeline.elderlyRetrospective.dailyLife}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-mist-50/40">
+                <div className="text-[10px] font-mono uppercase tracking-wider mb-2 text-mist-400">
+                  · 60岁独白 ·
+                </div>
+                <p className="text-white/80 font-serif italic text-sm leading-relaxed">
+                  「{timeline.elderlyRetrospective.monologue}」
+                </p>
+                <div className="mt-3 text-right">
+                  <span className="text-xs font-serif" style={{ color: personality.accentColor }}>
+                    —— {timeline.elderlyRetrospective.keyQuote}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {timeline.elderlyRetrospective.stageTradeOff && (
+            <div className="relative pt-3 mb-4">
+              <div className="divider-gradient mb-4" />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 -top-0.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium"
+                style={{
+                  backgroundColor: '#F59E0B' + '22',
+                  color: '#F59E0B'
+                }}
+              >
+                · 60岁账本 · 这辈子交换了什么 ·
+              </div>
+              <div className="pt-4 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div
+                    className="p-3 rounded-xl border-l-4"
+                    style={{ backgroundColor: '#10B981' + '10', borderColor: '#10B981' }}
+                  >
+                    <div className="text-[10px] font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#10B981' }}>
+                      <span>＋</span> 这辈子·得到
+                    </div>
+                    <ul className="space-y-1.5">
+                      {timeline.elderlyRetrospective.stageTradeOff.gainedThisStage.map((g: string, i: number) => (
+                        <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
+                          <span className="text-emerald-500 mt-0.5 text-[10px]">▸</span>
+                          <span>{g}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div
+                    className="p-3 rounded-xl border-l-4"
+                    style={{ backgroundColor: '#EF4444' + '10', borderColor: '#EF4444' }}
+                  >
+                    <div className="text-[10px] font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#EF4444' }}>
+                      <span>−</span> 这辈子·失去
+                    </div>
+                    <ul className="space-y-1.5">
+                      {timeline.elderlyRetrospective.stageTradeOff.lostThisStage.map((l: string, i: number) => (
+                        <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
+                          <span className="text-red-500 mt-0.5 text-[10px]">▸</span>
+                          <span>{l}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl" style={{ backgroundColor: personality.accentColor + '12', borderLeft: `3px solid ${personality.accentColor}` }}>
+                  <div className="text-[10px] font-mono uppercase tracking-wider mb-1.5" style={{ color: personality.accentColor }}>
+                    价签 · 这辈子的记账方式
+                  </div>
+                  <p className="text-mist-300 text-[12px] leading-relaxed font-serif italic">
+                    {timeline.elderlyRetrospective.stageTradeOff.priceTag}
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-500/8 to-orange-500/8 border border-amber-500/20">
+                  <div className="text-[10px] font-mono uppercase tracking-wider mb-1.5 text-amber-500 flex items-center gap-1.5">
+                    <span>✗</span> 深夜未说出口的 · 安静的遗憾
+                  </div>
+                  <p className="text-mist-500 text-[12px] leading-relaxed italic">
+                    {timeline.elderlyRetrospective.stageTradeOff.quietRegret}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-mist-50/50">
+              <div className="text-[10px] font-mono uppercase tracking-wider mb-2 text-chronos flex items-center gap-1.5">
+                <Sparkles size={12} />
+                60岁的价值观
+              </div>
+              <ul className="space-y-1.5">
+                {timeline.elderlyRetrospective.values.map((v: string, i: number) => (
+                  <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
+                    <span className="text-nebula mt-0.5 text-[10px]">◆</span>
+                    <span>{v}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="p-4 rounded-xl bg-mist-50/50">
+              <div className="text-[10px] font-mono uppercase tracking-wider mb-2 text-nebula flex items-center gap-1.5">
+                <Heart size={12} />
+                一辈子都没改的东西
+              </div>
+              <ul className="space-y-1.5">
+                {timeline.elderlyRetrospective.preservationPoints.map((p: string, i: number) => (
+                  <li key={i} className="text-mist-500 text-[11px] leading-relaxed flex items-start gap-1.5">
+                    <span className="text-nebula mt-0.5 text-[10px]">✦</span>
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-mist-50/20">
+            <div className="text-center">
+              <p className="text-mist-500 text-[11px] font-serif italic leading-relaxed">
+                「合上这本相册的时候，你会发现——
+                所谓命运，不过是无数个今天的选择，堆积而成的结果。
+                而你现在正在做的每一个决定，
+                都在悄悄写下，四十年后那个属于你的，最后一页。」
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

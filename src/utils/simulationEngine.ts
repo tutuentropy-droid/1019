@@ -210,15 +210,16 @@ function buildLifeTimeline(
   const storyboard = template.storyboards[index % template.storyboards.length];
 
   const stagesWithFactors = {} as Record<AgeStage, AgeStageState>;
-  const ages: AgeStage[] = [20, 30, 40];
+  const ages: AgeStage[] = [20, 30, 40, 60];
 
   for (const age of ages) {
     const stage = template.stages[age];
+    if (!stage) continue;
     let occupation = stage.occupation;
     let dailyLife = stage.dailyLife;
     let worldView = stage.worldView;
 
-    if (context) {
+    if (context && age !== 60) {
       const availableJobs = context.opportunityStructure.available;
       const contextJob = availableJobs[index % availableJobs.length];
       occupation = `${context.eraLabel}${context.countryLabel} · ${contextJob} · ${occupation}`;
@@ -237,7 +238,32 @@ function buildLifeTimeline(
     };
   }
 
-  const contextSubtitle = context ? `「${codeName}」${context.eraLabel}${context.countryLabel} · 20→30→40` : `「${codeName}」世界线 · 20→30→40`;
+  const elderlyRetrospectives = template.elderlyRetrospectives || [];
+  const elderlyBase = elderlyRetrospectives[index % elderlyRetrospectives.length] || {
+    age: 60 as const,
+    selfIdentity: '',
+    occupation: '',
+    livingSituation: '',
+    emotionalState: '',
+    emotionalTrend: 'stable' as const,
+    keyQuote: '',
+    monologue: '',
+    messageToYoungerSelf: '',
+    greatestRegret: '',
+    greatestSatisfaction: '',
+    values: [],
+    dailyLife: '',
+    innerConflict: '',
+    worldView: '',
+    preservationPoints: []
+  };
+
+  const elderlyRetrospective = {
+    ...elderlyBase,
+    stageTradeOff: buildStageTradeOff(seedArchetype, 60, index)
+  };
+
+  const contextSubtitle = context ? `「${codeName}」${context.eraLabel}${context.countryLabel} · 20→30→40→60` : `「${codeName}」世界线 · 20→30→40→60`;
 
   return {
     id: `tl-${Date.now()}-${index}`,
@@ -250,7 +276,8 @@ function buildLifeTimeline(
       ...poster,
       subtitle: contextSubtitle
     },
-    storyboard
+    storyboard,
+    elderlyRetrospective
   };
 }
 
@@ -311,6 +338,14 @@ const stageTradeOffTemplates: Record<string, Record<AgeStage, StageTradeOff[]>> 
         quietRegret: '母亲在世时总说「你忙你的，不用回来」，我就真的没怎么回去。现在每次路过她常去的菜市场，都会停很久——想跟她说一句「我今天不忙，陪你逛逛」。',
         priceTag: '用「对自己的残忍」，换来了「对所有人的尽责」。这笔账算到四十岁，才发现自己是最大的负债方。'
       }
+    ],
+    60: [
+      {
+        gainedThisStage: ['终于学会了对自己好一点', '孙辈的笑声——这是这辈子收到的最好礼物', '和老伴的感情，经历了四十年沉淀，比什么都踏实'],
+        lostThisStage: ['健康（四十年积攒的各种小毛病都开始找上门）', '很多老朋友——有些走了，有些联系不上了', '那个说「我永远不会老」的少年——他真的老了'],
+        quietRegret: '前几年整理旧物，翻出了一张父母年轻时的合影。看着照片里他们笑着的样子，突然想不起他们最后一次跟我说「我爱你」是什么时候。也想不起我最后一次跟他们说，是什么时候。',
+        priceTag: '用「四十年的自我牺牲」，换来了「一辈子的问心无愧」。这笔账算到六十岁——不亏。只是如果能重来，我想对自己好一点，更早一点。'
+      }
     ]
   },
   'the-wanderer': {
@@ -336,6 +371,14 @@ const stageTradeOffTemplates: Record<string, Record<AgeStage, StageTradeOff[]>> 
         lostThisStage: ['身体（常年旅途留下的各种小毛病）', '父亲去世时没赶上最后一面——这是这辈子最大的遗憾', '跟老友重新坐在一起时，发现我们已经没有共同语言了'],
         quietRegret: '去年回了一趟那个小镇，走在童年的街道上，突然哭了。不是因为怀念，是因为我终于承认——我走了二十年，其实一直在跟这个地方较劲。而它，早就不记得我了。',
         priceTag: '用「所有人都看得见的「成功」」，换来了「只有自己才懂的「自由」」。这笔交易是否划算，我至今没有答案。但如果再选一次——可能还是会走同样的路。'
+      }
+    ],
+    60: [
+      {
+        gainedThisStage: ['终于可以心安理得地停下来了', '有几个可以随时回去的地方，和几个可以随时找来的人', '明白「心安处即是家」这句话的真正意思'],
+        lostThisStage: ['身体——膝盖、腰、眼睛，都在跟我算总账', '很多路上认识的朋友——走着走着就散了，有些再也联系不上了', '再背上包说走就走的体力和冲动——它真的一去不复返了'],
+        quietRegret: '母亲病重那年我在亚马逊雨林里没信号。后来我在她坟前种了一棵树，每年都回去浇水。那棵树现在很高了，我总觉得——她在替我，看那些我没来得及带她看的风景。',
+        priceTag: '用「一个可以回去的家」，换来了「整个世界的风景」。算到六十岁，这笔账——我赚了。只是偶尔会想，如果当时多回头看看，会不会更好。'
       }
     ]
   },
@@ -363,6 +406,14 @@ const stageTradeOffTemplates: Record<string, Record<AgeStage, StageTradeOff[]>> 
         quietRegret: '父亲去世一周年那天，我一个人去了墓地。在他的墓碑前坐了一下午，把这些年发生的事都跟他说了——包括那些我赢了的、输了的、骄傲的、后悔的。临走的时候，我终于说了那句憋了半辈子的话：「爸，我做到了。你可以，夸我一句吗？」风很大，没人回答我。',
         priceTag: '用「二十年的寿命和爱的能力」，换来了「世俗意义上的成功」。四十岁这年，我终于决定——停止这笔交易。虽然亏了，但剩下的日子，我想为自己活。'
       }
+    ],
+    60: [
+      {
+        gainedThisStage: ['终于不用再赢任何人了', '有一个愿意在我脆弱的时候抱着我的人', '孙辈眼里的「超级英雄爷爷」——这是这辈子最满意的头衔'],
+        lostThisStage: ['身体——四十年的硬扛终于撑不住了，各种慢性病找上门', '那些没能说出口的「我爱你」和「对不起」——有些人永远听不到了', '当年那股不服输的劲儿——它还在，只是不再用来和别人比了'],
+        quietRegret: '母亲去世那天我在开一个重要的会。等我赶到，她已经凉了。她的手还握着我的照片。这辈子赢了无数场仗，但这一场——我输得一败涂地，而且永远没有翻盘的机会。',
+        priceTag: '用「四十年的时间去赢所有人」，换来了「最后二十年终于学会了爱自己」。这笔账算到六十岁——勉强打平。只是如果重来一次，我想早点学会放下剑。'
+      }
     ]
   },
   'the-healer': {
@@ -389,6 +440,14 @@ const stageTradeOffTemplates: Record<string, Record<AgeStage, StageTradeOff[]>> 
         quietRegret: '今年生日那天，我给自己买了一个蛋糕，然后一个人坐在家里，把那句「祝你生日快乐」认认真真地对自己说了一遍。说着说着就哭了——因为我发现，这是我四十年来，第一次把自己当成一个需要被庆祝的人。',
         priceTag: '用「前半辈子燃烧自己」，换来了「后半辈子学会爱自己」。这个交换的代价太大了。但好在——我终于开始了。虽然晚了四十年，但总比一辈子没开始好。'
       }
+    ],
+    60: [
+      {
+        gainedThisStage: ['终于可以心安理得地对自己好，再也没有负罪感', '看到曾经帮助过的人把善意传递下去——这是这辈子最好的回报', '明白「先渡己再渡人」不是自私，是责任'],
+        lostThisStage: ['健康——四十年的透支不是说补就能补回来的', '那些没能说出口的「我也需要被照顾」——有些人再也听不到了', '二十岁时那种「燃烧自己照亮别人」的冲动——它变成了更温和的光，也挺好的'],
+        quietRegret: '有天深夜我真的很累，跟一个朋友说「今天能不能聊点别的？」她后来再也没主动找过我。很久以后我才知道，那时候她正准备自杀。我经常会想——如果那天我接了那个电话，会不会不一样？',
+        priceTag: '用「四十年的自我牺牲」，换来了「终于学会了先爱自己再爱世界」。这笔账算到六十岁——值了。只是如果能重来，我想从二十岁就开始，对自己好一点。'
+      }
     ]
   },
   'the-philosopher': {
@@ -414,6 +473,14 @@ const stageTradeOffTemplates: Record<string, Record<AgeStage, StageTradeOff[]>> 
         lostThisStage: ['二十年里那些因为「等想清楚」而错过的人和事——它们不会再回来了', '那种「只要找到真理一切就会好起来」的少年心气——它被现实磨平了，说不清是好事还是坏事', '跟母亲好好聊一次天的机会——她走的时候，我在做讲座，等我赶到，她已经等不及了'],
         quietRegret: '去年整理旧物，翻出了二十岁时写的日记。那本日记的最后一页，写着一行字：「如果有一天我变成了一个庸俗的大人，请记得叫醒我。」我坐在地上，把那本日记看了整整一下午，然后在最后一页的后面，又写了一行字：「对不起，我变成了你最讨厌的那种人。但是——我现在很快乐。这种快乐，不是你能懂的那种。」',
         priceTag: '用「少年时那种纯粹的、不计代价的理想主义」，换来了「中年时那种平和的、与生活和解的通透」。这个交换，我到四十岁才终于觉得——也许，不亏。'
+      }
+    ],
+    60: [
+      {
+        gainedThisStage: ['终于不再需要「找到答案」来证明自己的存在了', '有一个可以坐一下午的阳台，和一整面墙的书——这就是我的整个宇宙', '明白「好好活着」就是对所有「为什么」最好的回答'],
+        lostThisStage: ['健康——眼睛、颈椎、记性，都开始跟我打招呼了', '很多能聊到灵魂深处的老朋友——有的走了，有的联系不上了', '那种「只要想通了一切就会好起来」的执念——它终于松开了，挺好的'],
+        quietRegret: '父亲临终前一周，他给我打电话，说「回来看看我吧」。我那时候正在改一篇论文，说「等我改完这一段就回」。等我改完，接到的是我哥的电话。回家的火车上，我把他这辈子对我说过的每一句话，都在心里过了一遍。才发现——那些我觉得「庸俗」的话，每一句都是他能想到的、表达爱的方式。',
+        priceTag: '用「四十年执着于寻找答案」，换来了「最后二十年终于学会了好好活在问题里」。这笔账算到六十岁——大赚。因为我终于懂了，人生不是一道要解出答案的题，是一首要慢慢读的诗。'
       }
     ]
   }

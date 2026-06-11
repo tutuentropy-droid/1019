@@ -198,7 +198,7 @@ export interface DialogueTurnDisplay {
   visible: boolean;
 }
 
-export type AgeStage = 20 | 30 | 40;
+export type AgeStage = 20 | 30 | 40 | 60;
 
 export type EmotionTrend = 'rising' | 'falling' | 'stable' | 'turbulent';
 
@@ -257,6 +257,7 @@ export interface LifeTimeline {
   preservationPoints: string[];
   poster: TimelinePoster;
   storyboard: StoryboardShot[];
+  elderlyRetrospective: ElderlyRetrospective;
 }
 
 export interface PerspectiveView {
@@ -293,6 +294,26 @@ export interface StageTradeOff {
   priceTag: string;
 }
 
+export interface ElderlyRetrospective {
+  age: 60;
+  selfIdentity: string;
+  occupation: string;
+  livingSituation: string;
+  emotionalState: string;
+  emotionalTrend: EmotionTrend;
+  keyQuote: string;
+  monologue: string;
+  messageToYoungerSelf: string;
+  greatestRegret: string;
+  greatestSatisfaction: string;
+  values: string[];
+  dailyLife: string;
+  innerConflict: string;
+  worldView: string;
+  preservationPoints: string[];
+  stageTradeOff?: StageTradeOff;
+}
+
 export interface TimelinePoster {
   title: string;
   tagline: string;
@@ -310,5 +331,6 @@ export interface TimelineTemplate {
   preservationPoints: string[];
   posters: TimelinePoster[];
   storyboards: StoryboardShot[][];
+  elderlyRetrospectives: ElderlyRetrospective[];
 }
 

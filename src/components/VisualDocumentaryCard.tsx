@@ -8,7 +8,7 @@ interface Props {
 
 const AGES: AgeStage[] = [20, 30, 40];
 
-const AGE_LABELS: Record<AgeStage, string> = {
+const AGE_LABELS: Partial<Record<AgeStage, string>> = {
   20: '20岁',
   30: '30岁',
   40: '40岁'
